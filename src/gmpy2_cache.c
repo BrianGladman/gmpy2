@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -49,8 +49,12 @@ set_gmpympzcache(void)
         }
         global.in_gmpympzcache = global.cache_size;
     }
-    global.gmpympzcache = GMPY_REALLOC(global.gmpympzcache, sizeof(MPZ_Object)*global.cache_size);
+    global.gmpympzcache = realloc(global.gmpympzcache, sizeof(MPZ_Object)*global.cache_size);
 }
+
+/* GMPy_MPZ_New returns a reference to a new MPZ_Object. Its value
+ * is initialized to 0.
+ */
 
 static MPZ_Object *
 GMPy_MPZ_New(CTXT_Object *context)
@@ -62,6 +66,7 @@ GMPy_MPZ_New(CTXT_Object *context)
         /* Py_INCREF does not set the debugging pointers, so need to use
          * _Py_NewReference instead. */
         _Py_NewReference((PyObject*)result);
+        mpz_set_ui(result->z, 0);
         result->hash_cache = -1;
     }
     else {
@@ -71,6 +76,110 @@ GMPy_MPZ_New(CTXT_Object *context)
         }
     }
     return result;
+}
+
+/* GMPy_MPZ_NewInit returns a reference to an initialized MPZ_Object. It is
+ * used by mpz.__new__ to replace the old mpz() factory function.
+ */
+
+static PyObject *
+GMPy_MPZ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds)
+{
+    MPZ_Object *result = NULL;
+    PyObject *n = NULL;
+    PyObject *temp = NULL;
+    int base = 0;
+    Py_ssize_t argc;
+    static char *kwlist[] = {"s", "base", NULL };
+    CTXT_Object *context = NULL;
+
+    if (type != &MPZ_Type) {
+        TYPE_ERROR("mpz.__new__() requires mpz type");
+        return NULL;
+    }
+
+    /* Optimize the most common use cases first; either 0 or 1 argument */
+
+    argc = PyTuple_GET_SIZE(args);
+
+    if (argc == 0) {
+        return (PyObject*)GMPy_MPZ_New(context);
+    }
+
+    if (argc == 1 && !keywds) {
+        n = PyTuple_GET_ITEM(args, 0);
+
+        if (MPZ_Check(n)) {
+            Py_INCREF(n);
+            return n;
+        }
+
+        if (PyIntOrLong_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_PyIntOrLong(n, context);
+        }
+
+        if (MPQ_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_MPQ((MPQ_Object*)n, context);
+        }
+
+        if (MPFR_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_MPFR((MPFR_Object*)n, context);
+        }
+
+        if (PyFloat_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_PyFloat(n, context);
+        }
+
+        if (XMPZ_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_XMPZ((XMPZ_Object*)n, context);
+        }
+
+        if (IS_FRACTION(n)) {
+            MPQ_Object *temp = GMPy_MPQ_From_Fraction(n, context);
+
+            if (temp) {
+                result = GMPy_MPZ_From_MPQ(temp, context);
+                Py_DECREF((PyObject*)temp);
+            }
+            return (PyObject*)result;
+        }
+
+        if (PyStrOrUnicode_Check(n)) {
+            return (PyObject*)GMPy_MPZ_From_PyStr(n, base, context);
+        }
+
+        /* Try converting to integer. */
+        temp = PyNumber_Long(n);
+        if (temp) {
+            result = GMPy_MPZ_From_PyIntOrLong(temp, context);
+            Py_DECREF(temp);
+            return (PyObject*)result;
+        }
+
+        TYPE_ERROR("mpz() requires numeric or string argument");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|i", kwlist, &n, &base)) {
+        return NULL;
+    }
+
+    if ((base != 0) && ((base < 2)|| (base > 62))) {
+        VALUE_ERROR("base for mpz() must be 0 or in the interval [2, 62]");
+        return NULL;
+    }
+
+    if (PyStrOrUnicode_Check(n)) {
+        return (PyObject*)GMPy_MPZ_From_PyStr(n, base, context);
+    }
+
+    if (IS_REAL(n)) {
+        TYPE_ERROR("mpz() with number argument only takes 1 argument");
+    }
+    else {
+        TYPE_ERROR("mpz() requires numeric or string (and optional base) arguments");
+    }
+    return NULL;
 }
 
 static void
@@ -99,29 +208,127 @@ set_gmpyxmpzcache(void)
         }
         global.in_gmpyxmpzcache = global.cache_size;
     }
-    global.gmpyxmpzcache = GMPY_REALLOC(global.gmpyxmpzcache, sizeof(XMPZ_Object)*global.cache_size);
+    global.gmpyxmpzcache = realloc(global.gmpyxmpzcache, sizeof(XMPZ_Object)*global.cache_size);
 }
 
 static XMPZ_Object *
 GMPy_XMPZ_New(CTXT_Object *context)
 {
-    XMPZ_Object *result;
+    XMPZ_Object *result = NULL;
 
     if (global.in_gmpyxmpzcache) {
         result = global.gmpyxmpzcache[--(global.in_gmpyxmpzcache)];
         /* Py_INCREF does not set the debugging pointers, so need to use
          * _Py_NewReference instead. */
         _Py_NewReference((PyObject*)result);
+        mpz_set_ui(result->z, 0);
     }
     else {
-        if (!(result = PyObject_New(XMPZ_Object, &XMPZ_Type))) {
-            /* LCOV_EXCL_START */
-            return NULL;
-            /* LCOV_EXCL_STOP */
+        if ((result = PyObject_New(XMPZ_Object, &XMPZ_Type))) {
+            mpz_init(result->z);
         }
-        mpz_init(result->z);
     }
     return result;
+}
+
+static PyObject *
+GMPy_XMPZ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds)
+{
+    XMPZ_Object *result = NULL;
+    PyObject *n = NULL;
+    PyObject *temp = NULL;
+    int base = 0;
+    Py_ssize_t argc;
+    static char *kwlist[] = {"s", "base", NULL };
+    CTXT_Object *context = NULL;
+
+    if (type != &XMPZ_Type) {
+        TYPE_ERROR("xmpz.__new__() requires xmpz type");
+        return NULL;
+    }
+
+    /* Optimize the most common use cases first; either 0 or 1 argument */
+
+    argc = PyTuple_GET_SIZE(args);
+
+    if (argc == 0) {
+        return (PyObject*)GMPy_XMPZ_New(context);
+    }
+
+    if (argc == 1 && !keywds) {
+        n = PyTuple_GET_ITEM(args, 0);
+
+        if (XMPZ_Check(n)) {
+            Py_INCREF(n);
+            return n;
+        }
+
+        if (PyIntOrLong_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_PyIntOrLong(n, context);
+        }
+
+        if (MPQ_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_MPQ((MPQ_Object*)n, context);
+        }
+
+        if (MPFR_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_MPFR((MPFR_Object*)n, context);
+        }
+
+        if (PyFloat_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_PyFloat(n, context);
+        }
+
+        if (MPZ_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_MPZ((MPZ_Object*)n, context);
+        }
+
+        if (IS_FRACTION(n)) {
+            MPQ_Object *temp = GMPy_MPQ_From_Fraction(n, context);
+
+            if (temp) {
+                result = GMPy_XMPZ_From_MPQ(temp, context);
+                Py_DECREF((PyObject*)temp);
+            }
+            return (PyObject*)result;
+        }
+
+        if (PyStrOrUnicode_Check(n)) {
+            return (PyObject*)GMPy_XMPZ_From_PyStr(n, base, context);
+        }
+
+        /* Try converting to integer. */
+        temp = PyNumber_Long(n);
+        if (temp) {
+            result = GMPy_XMPZ_From_PyIntOrLong(temp, context);
+            Py_DECREF(temp);
+            return (PyObject*)result;
+        }
+
+        TYPE_ERROR("xmpz() requires numeric or string argument");
+        return NULL;
+    }
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|i", kwlist, &n, &base)) {
+        return NULL;
+    }
+
+    if ((base != 0) && ((base < 2)|| (base > 62))) {
+        VALUE_ERROR("base for xmpz() must be 0 or in the interval [2, 62]");
+        return NULL;
+    }
+
+    if (PyStrOrUnicode_Check(n)) {
+        return (PyObject*)GMPy_XMPZ_From_PyStr(n, base, context);
+    }
+
+    if (IS_REAL(n)) {
+        TYPE_ERROR("xmpz() with number argument only takes 1 argument");
+    }
+    else {
+        TYPE_ERROR("xmpz() requires numeric or string (and optional base) arguments");
+    }
+    return NULL;
 }
 
 static void
@@ -150,13 +357,13 @@ set_gmpympqcache(void)
         }
         global.in_gmpympqcache = global.cache_size;
     }
-    global.gmpympqcache = GMPY_REALLOC(global.gmpympqcache, sizeof(MPQ_Object)*global.cache_size);
+    global.gmpympqcache = realloc(global.gmpympqcache, sizeof(MPQ_Object)*global.cache_size);
 }
 
 static MPQ_Object *
 GMPy_MPQ_New(CTXT_Object *context)
 {
-    MPQ_Object *result;
+    MPQ_Object *result = NULL;
 
     if (global.in_gmpympqcache) {
         result = global.gmpympqcache[--(global.in_gmpympqcache)];
@@ -174,6 +381,94 @@ GMPy_MPQ_New(CTXT_Object *context)
     }
     result->hash_cache = -1;
     return result;
+}
+
+static PyObject *
+GMPy_MPQ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds)
+{
+    MPQ_Object *result = NULL, *temp = NULL;
+    PyObject *n = NULL, *m = NULL;
+    int base = 10;
+    Py_ssize_t argc, keywdc = 0;
+    static char *kwlist[] = {"s", "base", NULL };
+    CTXT_Object *context = NULL;
+
+    argc = PyTuple_Size(args);
+    if (keywds) {
+        keywdc = PyDict_Size(keywds);
+    }
+
+    if (argc + keywdc > 2) {
+        TYPE_ERROR("mpq() takes at most 2 arguments");
+        return NULL;
+    }
+
+    if (argc + keywdc == 0) {
+        if ((result = GMPy_MPQ_New(context))) {
+            mpq_set_ui(result->q, 0, 1);
+        }
+        return (PyObject*)result;
+    }
+
+    if (argc == 0) {
+        TYPE_ERROR("mpq() requires at least one non-keyword argument");
+        return NULL;
+    }
+
+    n = PyTuple_GetItem(args, 0);
+
+    /* Handle the case where the first argument is a string. */
+    if (PyStrOrUnicode_Check(n)) {
+        /* keyword base is legal */
+        if (keywdc || argc > 1) {
+            if (!(PyArg_ParseTupleAndKeywords(args, keywds, "O|i", kwlist, &n, &base))) {
+                return NULL;
+            }
+        }
+
+        if ((base != 0) && ((base < 2) || (base > 62))) {
+            VALUE_ERROR("base for mpq() must be 0 or in the interval [2, 62]");
+            return NULL;
+        }
+
+        return (PyObject*)GMPy_MPQ_From_PyStr(n, base, context);
+    }
+
+    /* Handle 1 argument. It must be non-complex number. */
+    if (argc == 1) {
+        if (IS_REAL(n)) {
+            return (PyObject*)GMPy_MPQ_From_Number(n, context);
+        }
+    }
+
+    /* Handle 2 arguments. Both arguments must be integer or rational. */
+    if (argc == 2) {
+        m = PyTuple_GetItem(args, 1);
+
+        if (IS_RATIONAL(n) && IS_RATIONAL(m)) {
+           result = GMPy_MPQ_From_Rational(n, context);
+           temp = GMPy_MPQ_From_Rational(m, context);
+           if (!result || !temp) {
+               Py_XDECREF((PyObject*)result);
+               Py_XDECREF((PyObject*)temp);
+               return NULL;
+            }
+
+            if (mpq_sgn(temp->q) == 0) {
+                ZERO_ERROR("zero denominator in mpq()");
+                Py_DECREF((PyObject*)result);
+                Py_DECREF((PyObject*)temp);
+                return NULL;
+            }
+
+            mpq_div(result->q, result->q, temp->q);
+            Py_DECREF((PyObject*)temp);
+            return (PyObject*)result;
+        }
+    }
+
+    TYPE_ERROR("mpq() requires numeric or string argument");
+    return NULL;
 }
 
 static void
@@ -203,7 +498,7 @@ set_gmpympfrcache(void)
         }
         global.in_gmpympfrcache = global.cache_size;
     }
-    global.gmpympfrcache = GMPY_REALLOC(global.gmpympfrcache, sizeof(MPFR_Object)*global.cache_size);
+    global.gmpympfrcache = realloc(global.gmpympfrcache, sizeof(MPFR_Object)*global.cache_size);
 }
 
 static MPFR_Object *
@@ -268,7 +563,7 @@ set_gmpympccache(void)
         }
         global.in_gmpympccache = global.cache_size;
     }
-    global.gmpympccache = GMPY_REALLOC(global.gmpympccache, sizeof(MPC_Object)*global.cache_size);
+    global.gmpympccache = realloc(global.gmpympccache, sizeof(MPC_Object)*global.cache_size);
 }
 
 

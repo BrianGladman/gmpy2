@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -26,7 +26,7 @@
  * License along with GMPY2; if not, see <http://www.gnu.org/licenses/>    *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-PyDoc_STRVAR(GMPy_doc_mpz_factory,
+PyDoc_STRVAR(GMPy_doc_mpz,
 "mpz() -> mpz(0)\n\n"
 "     If no argument is given, return mpz(0).\n\n"
 "mpz(n) -> mpz\n\n"
@@ -39,63 +39,9 @@ PyDoc_STRVAR(GMPy_doc_mpz_factory,
 "     the string is assumed to be decimal. Values for base can range\n"
 "     between 2 and 62.");
 
-static PyObject *
-GMPy_MPZ_Factory(PyObject *self, PyObject *args, PyObject *keywds)
-{
-    MPZ_Object *result = NULL;
-    PyObject *n;
-    int base = 0;
-    Py_ssize_t argc;
-    static char *kwlist[] = {"s", "base", NULL };
-    CTXT_Object *context = NULL;
-
-    CHECK_CONTEXT(context)
-
-    /* Optimize the most common use cases first; either 0 or 1 argument */
-
-    argc = PyTuple_GET_SIZE(args);
-
-    if (argc == 0) {
-        if ((result = GMPy_MPZ_New(context))) {
-            mpz_set_ui(result->z, 0);
-        }
-        return (PyObject*)result;
-    }
-
-    if (argc == 1 && !keywds) {
-        n = PyTuple_GET_ITEM(args, 0);
-        if (IS_REAL(n)) {
-            result = GMPy_MPZ_From_Number(n, context);
-        }
-        else if (PyStrOrUnicode_Check(n)) {
-            result = GMPy_MPZ_From_PyStr(n, base, context);
-        }
-        else {
-            TYPE_ERROR("mpz() requires numeric or string argument");
-        }
-        return (PyObject*)result;
-    }
-
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|i", kwlist, &n, &base)) {
-        return NULL;
-    }
-
-    if ((base != 0) && ((base < 2)|| (base > 62))) {
-        VALUE_ERROR("base for mpz() must be 0 or in the interval [2, 62]");
-        return NULL;
-    }
-
-    if (PyStrOrUnicode_Check(n)) {
-        result = GMPy_MPZ_From_PyStr(n, base, context);
-    }
-    else if (IS_REAL(n)) {
-        TYPE_ERROR("mpz() with number argument only takes 1 argument");
-    }
-    else {
-        TYPE_ERROR("mpz() requires numeric or string (and optional base) arguments");
-    }
-    return (PyObject*)result;
-}
+/* Since `gmpy2.mpz` is now a type and no longer a factory function, see
+ * gmpy2_cache.c/GMPy_MPZ_NewInit for details on creation.
+ */
 
 #ifdef PY3
 static PyNumberMethods GMPy_MPZ_number_methods =
@@ -225,7 +171,7 @@ static PyTypeObject MPZ_Type =
 {
     /* PyObject_HEAD_INIT(&PyType_Type) */
 #ifdef PY3
-    PyVarObject_HEAD_INIT(0, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
 #else
     PyObject_HEAD_INIT(0)
         0,                                  /* ob_size          */
@@ -256,15 +202,24 @@ static PyTypeObject MPZ_Type =
     Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_CLASS| \
     Py_TPFLAGS_HAVE_INPLACEOPS,
 #endif
-    "Multiple precision integer",           /* tp_doc           */
+    GMPy_doc_mpz,                           /* tp_doc           */
         0,                                  /* tp_traverse      */
         0,                                  /* tp_clear         */
     (richcmpfunc)&GMPy_RichCompare_Slot,    /* tp_richcompare   */
         0,                                  /* tp_weaklistoffset*/
         0,                                  /* tp_iter          */
         0,                                  /* tp_iternext      */
-    GMPy_MPZ_methods,                          /* tp_methods       */
+    GMPy_MPZ_methods,                       /* tp_methods       */
         0,                                  /* tp_members       */
-    GMPy_MPZ_getseters,                        /* tp_getset        */
+    GMPy_MPZ_getseters,                     /* tp_getset        */
+        0,                                  /* tp_base          */
+        0,                                  /* tp_dict          */
+        0,                                  /* tp_descr_get     */
+        0,                                  /* tp_descr_set     */
+        0,                                  /* tp_dictoffset    */
+        0,                                  /* tp_init          */
+        0,                                  /* tp_alloc         */
+    GMPy_MPZ_NewInit,                       /* tp_new           */
+        0,                                  /* tp_free          */
 };
 

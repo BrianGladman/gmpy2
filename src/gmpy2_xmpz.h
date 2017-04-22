@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -33,11 +33,6 @@
 extern "C" {
 #endif
 
-typedef struct {
-    PyObject_HEAD
-    mpz_t z;
-} XMPZ_Object;
-
 static PyTypeObject XMPZ_Type;
 #define XMPZ(obj) (((XMPZ_Object*)(obj))->z)
 #define XMPZ_Check(v) (((PyObject*)v)->ob_type == &XMPZ_Type)
@@ -52,8 +47,6 @@ typedef struct {
 
 static PyTypeObject GMPy_Iter_Type;
 #define GMPy_Iter_Check(v) (((PyObject*)v)->ob_type == &GMPy_Iter_Type)
-
-static PyObject * GMPy_XMPZ_Factory(PyObject *self, PyObject *args, PyObject *keywds);
 
 #ifdef __cplusplus
 }

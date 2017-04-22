@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -170,7 +170,7 @@ GMPy_printf(PyObject *self, PyObject *args)
         }
         else {
             result = Py_BuildValue("s", buffer);
-            GMPY_FREE(buffer);
+            mpfr_free_str(buffer);
         }
         return result;
     }
@@ -182,7 +182,7 @@ GMPy_printf(PyObject *self, PyObject *args)
         }
         else {
             result = Py_BuildValue("s", buffer);
-            GMPY_FREE(buffer);
+            mpfr_free_str(buffer);
         }
         return result;
     }

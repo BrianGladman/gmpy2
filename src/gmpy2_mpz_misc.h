@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -37,7 +37,7 @@ extern "C" {
 static int        GMPy_MPZ_NonZero_Slot(MPZ_Object *self);
 
 static PyObject * GMPy_MPZ_Attrib_GetNumer(MPZ_Object *self, void *closure);
-static PyObject * GMPy_MPZ_Attrib_GetDenom(MPQ_Object *self, void *closure);
+static PyObject * GMPy_MPZ_Attrib_GetDenom(MPZ_Object *self, void *closure);
 
 static PyObject * GMPy_MPZ_Method_Ceil(PyObject *self, PyObject *other);
 static PyObject * GMPy_MPZ_Method_Floor(PyObject *self, PyObject *other);

@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -28,13 +28,7 @@
 
 
 /* gmpy2 caches objects so they can be reused quickly without involving a new
- * memory allocation or object construction. There are two different types of
- * object caches used in gmpy2.
- *
- * The "py???cache" is used to cache Py??? objects. The cache is accessed
- * via Py???_new/Py???_dealloc. The functions set_py???cache and
- * set_py???cache are used to change the size of the array used to the store
- * the cached objects.
+ * memory allocation or object construction.
  */
 
 #ifndef GMPY_CACHE_H
@@ -44,23 +38,40 @@
 extern "C" {
 #endif
 
+/* Private functions */
+
 static void          set_gmpympzcache(void);
-static MPZ_Object *  GMPy_MPZ_New(CTXT_Object *context);
-static void          GMPy_MPZ_Dealloc(MPZ_Object *self);
-
 static void          set_gmpyxmpzcache(void);
-static XMPZ_Object * GMPy_XMPZ_New(CTXT_Object *context);
-static void          GMPy_XMPZ_Dealloc(XMPZ_Object *self);
-
 static void          set_gmpympqcache(void);
-static MPQ_Object *  GMPy_MPQ_New(CTXT_Object *context);
-static void          GMPy_MPQ_Dealloc(MPQ_Object *self);
-
 static void          set_gmpympfrcache(void);
+static void          set_gmpympccache(void);
+
+/* C-API functions */
+
+/* static MPZ_Object *  GMPy_MPZ_New(CTXT_Object *context); */
+/* static PyObject *    GMPy_MPZ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds); */
+/* static void          GMPy_MPZ_Dealloc(MPZ_Object *self); */
+static GMPy_MPZ_New_RETURN     GMPy_MPZ_New     GMPy_MPZ_New_PROTO;
+static GMPy_MPZ_NewInit_RETURN GMPy_MPZ_NewInit GMPy_MPZ_NewInit_PROTO;
+static GMPy_MPZ_Dealloc_RETURN GMPy_MPZ_Dealloc GMPy_MPZ_Dealloc_PROTO;
+
+/* static XMPZ_Object *  GMPy_XMPZ_New(CTXT_Object *context); */
+/* static PyObject *     GMPy_XMPZ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds); */
+/* static void           GMPy_XMPZ_Dealloc(XMPZ_Object *self); */
+static GMPy_XMPZ_New_RETURN     GMPy_XMPZ_New     GMPy_XMPZ_New_PROTO;
+static GMPy_XMPZ_NewInit_RETURN GMPy_XMPZ_NewInit GMPy_XMPZ_NewInit_PROTO;
+static GMPy_XMPZ_Dealloc_RETURN GMPy_XMPZ_Dealloc GMPy_XMPZ_Dealloc_PROTO;
+
+/* static MPQ_Object *  GMPy_MPQ_New(CTXT_Object *context); */
+/* static PyObject *    GMPy_MPQ_NewInit(PyTypeObject *type, PyObject *args, PyObject *keywds); */
+/* static void          GMPy_MPQ_Dealloc(MPQ_Object *self); */
+static GMPy_MPQ_New_RETURN     GMPy_MPQ_New     GMPy_MPQ_New_PROTO;
+static GMPy_MPQ_NewInit_RETURN GMPy_MPQ_NewInit GMPy_MPQ_NewInit_PROTO;
+static GMPy_MPQ_Dealloc_RETURN GMPy_MPQ_Dealloc GMPy_MPQ_Dealloc_PROTO;
+
 static MPFR_Object * GMPy_MPFR_New(mpfr_prec_t bits, CTXT_Object *context);
 static void          GMPy_MPFR_Dealloc(MPFR_Object *self);
 
-static void          set_gmpympccache(void);
 static MPC_Object *  GMPy_MPC_New(mpfr_prec_t rprec, mpfr_prec_t iprec, CTXT_Object *context);
 static void          GMPy_MPC_Dealloc(MPC_Object *self);
 

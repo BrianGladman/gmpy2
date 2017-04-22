@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -297,45 +297,6 @@ GMPy_PyStr_From_MPZ(MPZ_Object *obj, int base, int option, CTXT_Object *context)
 }
 
 static MPZ_Object *
-GMPy_MPZ_From_Number(PyObject *obj, CTXT_Object *context)
-{
-    MPZ_Object *result = NULL;
-
-    if (MPZ_Check(obj)) {
-        Py_INCREF(obj);
-        return (MPZ_Object*)obj;
-    }
-
-    if (PyIntOrLong_Check(obj))
-        return GMPy_MPZ_From_PyIntOrLong(obj, context);
-
-    if (MPQ_Check(obj))
-        return GMPy_MPZ_From_MPQ((MPQ_Object*)obj, context);
-
-    if (MPFR_Check(obj))
-        return GMPy_MPZ_From_MPFR((MPFR_Object*)obj, context);
-
-    if (PyFloat_Check(obj))
-        return GMPy_MPZ_From_PyFloat(obj, context);
-
-    if (XMPZ_Check(obj))
-        return GMPy_MPZ_From_XMPZ((XMPZ_Object*)obj, context);
-
-    if (IS_FRACTION(obj)) {
-        MPQ_Object *temp = GMPy_MPQ_From_Fraction(obj, context);
-
-        if (temp) {
-            result = GMPy_MPZ_From_MPQ(temp, context);
-            Py_DECREF((PyObject*)temp);
-        }
-        return result;
-    }
-
-    TYPE_ERROR("cannot convert object to mpz");
-    return result;
-}
-
-static MPZ_Object *
 GMPy_MPZ_From_Integer(PyObject *obj, CTXT_Object *context)
 {
     MPZ_Object *result = NULL;
@@ -370,11 +331,11 @@ GMPy_MPZ_Repr_Slot(MPZ_Object *self)
     return GMPy_PyStr_From_MPZ(self, 10, 1, NULL);
 }
 
-/* Helper function for argument parsing. Not currently used. */
+#ifdef SHARED
+/* Helper function for argument parsing. Not used in static build. */
 
-#if 0
 static int
-GMPy_MPZ_convert_arg(PyObject *arg, PyObject **ptr)
+GMPy_MPZ_ConvertArg(PyObject *arg, PyObject **ptr)
 {
     MPZ_Object *result = GMPy_MPZ_From_Integer(arg, NULL);
 
@@ -388,6 +349,7 @@ GMPy_MPZ_convert_arg(PyObject *arg, PyObject **ptr)
     }
 }
 #endif
+
 /* ======================================================================== *
  * Conversion between native Python objects/MPZ and XMPZ.                   *
  * ======================================================================== */
@@ -530,43 +492,6 @@ GMPy_MPZ_From_XMPZ(XMPZ_Object *obj, CTXT_Object *context)
     if ((result = GMPy_MPZ_New(context)))
         mpz_set(result->z, obj->z);
 
-    return result;
-}
-
-static XMPZ_Object*
-GMPy_XMPZ_From_Number(PyObject *obj, CTXT_Object *context)
-{
-    XMPZ_Object *result = NULL;
-
-    if (MPZ_Check(obj))
-        return GMPy_XMPZ_From_MPZ((MPZ_Object*)obj, context);
-
-    if (PyIntOrLong_Check(obj))
-        return GMPy_XMPZ_From_PyIntOrLong(obj, context);
-
-    if (MPQ_Check(obj))
-        return GMPy_XMPZ_From_MPQ((MPQ_Object*)obj, context);
-
-    if (MPFR_Check(obj))
-        return GMPy_XMPZ_From_MPFR((MPFR_Object*)obj, context);
-
-    if (PyFloat_Check(obj))
-        return GMPy_XMPZ_From_PyFloat(obj, context);
-
-    if (XMPZ_Check(obj))
-        return GMPy_XMPZ_From_XMPZ((XMPZ_Object*)obj, context);
-
-    if (IS_FRACTION(obj)) {
-        MPQ_Object *temp = GMPy_MPQ_From_Fraction(obj, context);
-
-        if (temp) {
-            result = GMPy_XMPZ_From_MPQ(temp, context);
-            Py_DECREF((PyObject*)temp);
-        }
-        return result;
-    }
-
-    TYPE_ERROR("cannot convert object to xmpz");
     return result;
 }
 
@@ -962,16 +887,12 @@ GMPy_PyStr_From_MPQ(MPQ_Object *obj, int base, int option, CTXT_Object *context)
 #ifdef PY2
     *(p++) = '%';
     *(p++) = 's';
-    if (!mpz_fits_slong_p(mpq_numref(obj->q)))
-        *(p++) = 'L';
     if (option & 1)
         *(p++) = ',';
     else
         *(p++) = '/';
     *(p++) = '%';
     *(p++) = 's';
-    if (!mpz_fits_slong_p(mpq_denref(obj->q)))
-        *(p++) = 'L';
     if (option & 1)
         *(p++) = ')';
     *(p++) = '\00';
@@ -1106,8 +1027,11 @@ GMPy_MPQ_From_Rational(PyObject *obj, CTXT_Object *context)
  * coerce any number to a mpq
  */
 
+#ifdef SHARED
+/* Helper function for argument parsing. Not used in static build. */
+
 int
-GMPy_MPQ_convert_arg(PyObject *arg, PyObject **ptr)
+GMPy_MPQ_ConvertArg(PyObject *arg, PyObject **ptr)
 {
     MPQ_Object* result = GMPy_MPQ_From_Number(arg, NULL);
 
@@ -1122,6 +1046,8 @@ GMPy_MPQ_convert_arg(PyObject *arg, PyObject **ptr)
         return 0;
     }
 }
+
+#endif
 
 /* str and repr implementations for mpq */
 static PyObject *

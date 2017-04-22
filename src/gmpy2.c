@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -337,20 +337,27 @@
  ************************************************************************
  *
  *   2.1.0
- *   Improvements to setup.py (casevh)
- *   Add thread-safe contexts (casevh)
- *   MPFR and MPC are now required (casevh)
- *   Invalid Operation exception now raised for addition, etc. (casevh)
- *   inverse() now raises exception if inverse does not exist (casevh)
- *   Add context methods (casevh)
+ *   Improvements to setup.py.
+ *   Add thread-safe contexts.
+ *   MPFR and MPC are now required.
+ *   Invalid Operation exception now raised for addition, etc.
+ *   inverse() now raises exception if inverse does not exist.
+ *   Add context methods.
  *   Major code refactoring required to properly support thread-safe
- *      contexts. (casevh)
- *   __str__ and __repr__ no longer append "L" on Python 2 (casevh)
- *   mpq(mpfr) now returns the exact result (casevh)
+ *      contexts.
+ *   __str__ and __repr__ no longer append "L" on Python 2.
+ *   mpq(mpfr) now returns the exact result.
  *   Fix repr(mpc) for precision >325 bits.
  *   Intermediate conversions of Integer to mpfr are now done with the
- *      full precision of the Integer. (casevh)
- *   Remove support for interaction with Decimal type. (casevh)
+ *      full precision of the Integer.
+ *   Remove support for interaction with Decimal type.
+ *   No longer attempt to override the memory allocation functions.
+ *   Register gmpy2 types into the numeric tower.
+ *   mpz(x) call int(x) if mpz() does not know how to convert x
+ *      directly.
+ *   Convert `mpz` to a type using __new__ instead of a factory
+ *      function.
+ *
  *
  ************************************************************************
  *
@@ -388,7 +395,6 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -402,6 +408,7 @@
  */
 #include "longintrepr.h"
 
+#define GMPY2_MODULE
 #include "gmpy2.h"
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -643,9 +650,7 @@ static PyMethodDef Pygmpy_methods [] =
     { "mp_limbsize", GMPy_get_mp_limbsize, METH_NOARGS, GMPy_doc_mp_limbsize },
     { "mpc_version", GMPy_get_mpc_version, METH_NOARGS, GMPy_doc_mpc_version },
     { "mpfr_version", GMPy_get_mpfr_version, METH_NOARGS, GMPy_doc_mpfr_version },
-    { "mpq", (PyCFunction)GMPy_MPQ_Factory, METH_VARARGS | METH_KEYWORDS, GMPy_doc_mpq_factory },
     { "mpq_from_old_binary", GMPy_MPQ_From_Old_Binary, METH_O, doc_mpq_from_old_binary },
-    { "mpz", (PyCFunction)GMPy_MPZ_Factory, METH_VARARGS | METH_KEYWORDS, GMPy_doc_mpz_factory },
     { "mpz_from_old_binary", GMPy_MPZ_From_Old_Binary, METH_O, doc_mpz_from_old_binary },
     { "mpz_random", GMPy_MPZ_random_Function, METH_VARARGS, GMPy_doc_mpz_random_function },
     { "mpz_rrandomb", GMPy_MPZ_rrandomb_Function, METH_VARARGS, GMPy_doc_mpz_rrandomb_function },
@@ -676,7 +681,6 @@ static PyMethodDef Pygmpy_methods [] =
     { "unpack", GMPy_MPZ_unpack, METH_VARARGS, doc_unpack },
     { "version", GMPy_get_version, METH_NOARGS, GMPy_doc_version },
     { "xbit_mask", GMPy_XMPZ_Function_XbitMask, METH_O, GMPy_doc_xmpz_function_xbit_mask },
-    { "xmpz", (PyCFunction)GMPy_XMPZ_Factory, METH_VARARGS | METH_KEYWORDS, GMPy_doc_xmpz_factory },
     { "_mpmath_normalize", Pympz_mpmath_normalize, METH_VARARGS, doc_mpmath_normalizeg },
     { "_mpmath_create", Pympz_mpmath_create, METH_VARARGS, doc_mpmath_createg },
 
@@ -812,44 +816,6 @@ static PyMethodDef Pygmpy_methods [] =
     { NULL, NULL, 1}
 };
 
-/* The custom memory allocation routines either use PyMem_* or the standard
- * libraries. See gmpy.h for defines.
- */
-
-static void *
-gmpy_allocate(size_t size)
-{
-    void *res;
-
-    if (!(res = GMPY_MALLOC(size))) {
-        /* LCOV_EXCL_START */
-        Py_FatalError("Insufficient memory");
-        /* LCOV_EXCL_STOP */
-    }
-
-    return res;
-}
-
-static void *
-gmpy_reallocate(void *ptr, size_t old_size, size_t new_size)
-{
-    void *res;
-
-    if (!(res = GMPY_REALLOC(ptr, new_size))) {
-        /* LCOV_EXCL_START */
-        Py_FatalError("Insufficient memory");
-        /* LCOV_EXCL_STOP */
-    }
-
-    return res;
-}
-
-static void
-gmpy_free( void *ptr, size_t size)
-{
-    GMPY_FREE(ptr);
-}
-
 static char _gmpy_docs[] =
 "gmpy2 2.1.0a0 - General Multiple-precision arithmetic for Python\n"
 "\n"
@@ -903,9 +869,16 @@ PyMODINIT_FUNC PyInit_gmpy2(void)
 PyMODINIT_FUNC initgmpy2(void)
 #endif
 {
+    PyObject *result = NULL;
+    PyObject *namespace = NULL;
     PyObject *gmpy_module = NULL;
     PyObject *copy_reg_module = NULL;
     PyObject *temp = NULL;
+    PyObject *numbers_module = NULL;
+#ifndef STATIC
+    static void *GMPy_C_API[GMPy_API_pointers];
+    PyObject *c_api_object;
+#endif
 
     /* Validate the sizes of the various typedef'ed integer types. */
 
@@ -997,9 +970,6 @@ PyMODINIT_FUNC initgmpy2(void)
         /* LCOV_EXCL_STOP */
     }
 
-    /* Initialize the custom memory handlers. */
-    mp_set_memory_functions(gmpy_allocate, gmpy_reallocate, gmpy_free);
-
     /* Initialize the global structure. Eventually this should be module local. */
     global.cache_size = 100;
     global.cache_obsize = 128;
@@ -1013,7 +983,7 @@ PyMODINIT_FUNC initgmpy2(void)
     set_gmpympccache();
 
     /* Initialize exceptions. */
-    GMPyExc_GmpyError = PyErr_NewException("gmpy2.gmpyError", PyExc_ArithmeticError, NULL);
+    GMPyExc_GmpyError = PyErr_NewException("gmpy2.gmpy2Error", PyExc_ArithmeticError, NULL);
     if (!GMPyExc_GmpyError) {
         /* LCOV_EXCL_START */
         INITERROR;
@@ -1088,6 +1058,21 @@ PyMODINIT_FUNC initgmpy2(void)
         INITERROR;
         /* LCOV_EXCL_STOP */
     }
+
+    /* Add the mpz type to the module namespace. */
+
+    Py_INCREF(&MPZ_Type);
+    PyModule_AddObject(gmpy_module, "mpz", (PyObject*)&MPZ_Type);
+
+    /* Add the xmpz type to the module namespace. */
+
+    Py_INCREF(&XMPZ_Type);
+    PyModule_AddObject(gmpy_module, "xmpz", (PyObject*)&XMPZ_Type);
+
+    /* Add the MPQ type to the module namespace. */
+
+    Py_INCREF(&MPQ_Type);
+    PyModule_AddObject(gmpy_module, "mpq", (PyObject*)&MPQ_Type);
 
     /* Initialize thread local contexts. */
 #ifdef WITHOUT_THREADS
@@ -1191,6 +1176,42 @@ PyMODINIT_FUNC initgmpy2(void)
         /* LCOV_EXCL_STOP */
     }
 
+#ifndef STATIC
+    /* Create the Capsule for the C-API. */
+
+    GMPy_C_API[MPZ_Type_NUM] = (void*)&MPZ_Type;
+    GMPy_C_API[XMPZ_Type_NUM] = (void*)&XMPZ_Type;
+    GMPy_C_API[MPQ_Type_NUM] = (void*)&MPQ_Type;
+    GMPy_C_API[XMPQ_Type_NUM] = (void*)&MPQ_Type;
+    GMPy_C_API[MPFR_Type_NUM] = (void*)&MPFR_Type;
+    GMPy_C_API[XMPFR_Type_NUM] = (void*)&MPFR_Type;
+    GMPy_C_API[MPC_Type_NUM] = (void*)&MPC_Type;
+    GMPy_C_API[XMPC_Type_NUM] = (void*)&MPC_Type;
+    GMPy_C_API[CTXT_Type_NUM] = (void*)&CTXT_Type;
+    GMPy_C_API[CTXT_Manager_Type_NUM] = (void*)&CTXT_Manager_Type;
+    GMPy_C_API[RandomState_Type_NUM] = (void*)&RandomState_Type;
+
+    GMPy_C_API[GMPy_MPZ_New_NUM] = (void*)GMPy_MPZ_New;
+    GMPy_C_API[GMPy_MPZ_NewInit_NUM] = (void*)GMPy_MPZ_NewInit;
+    GMPy_C_API[GMPy_MPZ_Dealloc_NUM] = (void*)GMPy_MPZ_Dealloc;
+    GMPy_C_API[GMPy_MPZ_ConvertArg_NUM] = (void*)GMPy_MPZ_ConvertArg;
+
+    GMPy_C_API[GMPy_XMPZ_New_NUM] = (void*)GMPy_XMPZ_New;
+    GMPy_C_API[GMPy_XMPZ_NewInit_NUM] = (void*)GMPy_XMPZ_NewInit;
+    GMPy_C_API[GMPy_XMPZ_Dealloc_NUM] = (void*)GMPy_XMPZ_Dealloc;
+
+    GMPy_C_API[GMPy_MPQ_New_NUM] = (void*)GMPy_MPQ_New;
+    GMPy_C_API[GMPy_MPQ_NewInit_NUM] = (void*)GMPy_MPQ_NewInit;
+    GMPy_C_API[GMPy_MPQ_Dealloc_NUM] = (void*)GMPy_MPQ_Dealloc;
+    GMPy_C_API[GMPy_MPQ_ConvertArg_NUM] = (void*)GMPy_MPQ_ConvertArg;
+
+    c_api_object = PyCapsule_New((void *)GMPy_C_API, "gmpy2._C_API", NULL);
+
+    if (c_api_object != NULL) {
+        PyModule_AddObject(gmpy_module, "_C_API", c_api_object);
+    }
+#endif
+
     /* Add support for pickling. */
 #ifdef PY3
     copy_reg_module = PyImport_ImportModule("copyreg");
@@ -1202,8 +1223,10 @@ PyMODINIT_FUNC initgmpy2(void)
             "copyreg.pickle(type(gmpy2.mpq(0)), gmpy2_reducer)\n"
             "copyreg.pickle(type(gmpy2.mpfr(0)), gmpy2_reducer)\n"
             "copyreg.pickle(type(gmpy2.mpc(0,0)), gmpy2_reducer)\n";
-        PyObject* namespace = PyDict_New();
-        PyObject* result = NULL;
+
+        namespace = PyDict_New();
+        result = NULL;
+
         PyDict_SetItemString(namespace, "copyreg", copy_reg_module);
         PyDict_SetItemString(namespace, "gmpy2", gmpy_module);
         PyDict_SetItemString(namespace, "type", (PyObject*)&PyType_Type);
@@ -1232,6 +1255,7 @@ PyMODINIT_FUNC initgmpy2(void)
             "copy_reg.pickle(type(gmpy2.mpq(0)), gmpy2_reducer)\n"
             "copy_reg.pickle(type(gmpy2.mpfr(0)), gmpy2_reducer)\n"
             "copy_reg.pickle(type(gmpy2.mpc(0,0)), gmpy2_reducer)\n";
+
         PyObject* namespace = PyDict_New();
         PyObject* result = NULL;
 
@@ -1254,6 +1278,36 @@ PyMODINIT_FUNC initgmpy2(void)
         /* LCOV_EXCL_STOP */
     }
 #endif
+
+    /* Register the gmpy2 types with the numeric tower. */
+
+    numbers_module = PyImport_ImportModule("numbers");
+    if (numbers_module) {
+        char* register_numbers =
+            "numbers.Integral.register(type(gmpy2.mpz()))\n"
+            "numbers.Rational.register(type(gmpy2.mpq()))\n"
+            "numbers.Real.register(type(gmpy2.mpfr()))\n"
+            "numbers.Complex.register(type(gmpy2.mpc()))\n"
+        ;
+        namespace = PyDict_New();
+        result = NULL;
+
+        PyDict_SetItemString(namespace, "numbers", numbers_module);
+        PyDict_SetItemString(namespace, "gmpy2", gmpy_module);
+        PyDict_SetItemString(namespace, "type", (PyObject*)&PyType_Type);
+        result = PyRun_String(register_numbers, Py_file_input,
+                              namespace, namespace);
+        if (!result) {
+            PyErr_Clear();
+        }
+
+        Py_DECREF(namespace);
+        Py_DECREF(numbers_module);
+        Py_XDECREF(result);
+    }
+    else {
+        PyErr_Clear();
+    }
 
 #ifdef PY3
     return gmpy_module;

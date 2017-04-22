@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -55,17 +55,215 @@
 extern "C" {
 #endif
 
-/* Check for Python version requirements. */
+/* Structure of gmpy2.h
+ *
+ * Revised 17-APR-2017 casevh
+ *
+ * 1. Checks for specific Python versions.
+ * 2. Include headers for GMP/MPIR, MPFR, and MPC.
+ * 3. Define public C-API.
+ *    1. Define gmpy2 types.
+ *    2. Define the public API.
+ *
+ */
+
+/* Check for minimum Python version requirements. */
 
 #if PY_VERSION_HEX < 0x02060000
 #  error "GMPY2 requires Python 2.6 or later."
 #endif
+
+/* Include headers for GMP/MPIR, MPFR, and MPC. */
+
+#ifdef MPIR
+#  include <mpir.h>
+#else
+#  include <gmp.h>
+#endif
+
+#include <mpfr.h>
+#include <mpc.h>
 
 #if PY_VERSION_HEX < 0x030200A4
 typedef long Py_hash_t;
 typedef unsigned long Py_uhash_t;
 #  define _PyHASH_IMAG 1000003
 #endif
+
+/* GMPY2 Public API */
+
+/* Types
+ *    MPZ_Object
+ *    XMPZ_Object        (mutable version of MPZ_Object)
+ *    MPQ_Object
+ *    XMPQ_Object        (mutable version of MPQ_Object)
+ *    MPFR_Object
+ *    XMPFR_Object       (mutable version of MPFR_Object)
+ *    MPC_Object
+ *    XMPC_Object        (mutable version of MPC_Object)
+ *    CTXT_Object
+ *    CTXT_Manager_Object
+ *    RandomState_Object
+ */
+
+typedef struct {
+    PyObject_HEAD
+    mpz_t z;
+    Py_hash_t hash_cache;
+} MPZ_Object;
+
+typedef struct {
+    PyObject_HEAD
+    mpz_t z;
+} XMPZ_Object;
+
+typedef struct {
+    PyObject_HEAD
+    mpq_t q;
+    Py_hash_t  hash_cache;
+} MPQ_Object;
+
+typedef struct {
+    PyObject_HEAD
+    mpfr_t f;
+    Py_hash_t hash_cache;
+    int rc;
+} MPFR_Object;
+
+typedef struct {
+    PyObject_HEAD
+    mpc_t c;
+    Py_hash_t hash_cache;
+    int rc;
+} MPC_Object;
+
+typedef struct {
+    PyObject_HEAD
+    gmp_randstate_t state;
+} RandomState_Object;
+
+typedef struct {
+    mpfr_prec_t mpfr_prec;   /* current precision in bits, for MPFR */
+    mpfr_rnd_t mpfr_round;   /* current rounding mode for float (MPFR) */
+    mpfr_exp_t emax;         /* maximum exponent */
+    mpfr_exp_t emin;         /* minimum exponent */
+    int subnormalize;        /* if 1, subnormalization is performed */
+    int underflow;           /* did an underflow occur? */
+    int overflow;            /* did an overflow occur? */
+    int inexact;             /* was the result inexact? */
+    int invalid;             /* invalid operation (i.e. NaN)? */
+    int erange;              /* did a range error occur? */
+    int divzero;             /* divided by zero? */
+    int traps;               /* if 0, do not trap any exceptions */
+                             /* if not 0, then raise traps per bits above  */
+    mpfr_prec_t real_prec;   /* current precision in bits, for Re(MPC) */
+    mpfr_prec_t imag_prec;   /* current precision in bits, for Im(MPC) */
+    mpfr_rnd_t real_round;   /* current rounding mode for Re(MPC) */
+    mpfr_rnd_t imag_round;   /* current rounding mode for Im(MPC) */
+    int allow_complex;       /* if 1, allow mpfr functions to return an mpc */
+    int rational_division;   /* if 1, mpz/mpz returns an mpq result */
+    int mpfr_divmod_exact;   /* if 1, divmod(mpfr, mpfr) uses mpq */
+    int quiet_nan;           /* if 1, NaN exception not set if input is Nan */
+    /* The following field is for internal use only. */
+    int was_nan;             /* if 1, at least one of the inputs was NaN */
+} gmpy_context;
+
+typedef struct {
+    PyObject_HEAD
+    gmpy_context ctx;
+#ifndef WITHOUT_THREADS
+    PyThreadState *tstate;
+#endif
+} CTXT_Object;
+
+typedef struct {
+    PyObject_HEAD
+    CTXT_Object *new_context; /* Context that will be returned when
+                               * __enter__ is called. */
+    CTXT_Object *old_context; /* Context that will restored when
+                               * __exit__ is called. */
+} CTXT_Manager_Object;
+
+#define MPZ(obj)  (((MPZ_Object*)(obj))->z)
+#define MPQ(obj)  (((MPQ_Object*)(obj))->q)
+#define MPFR(obj) (((MPFR_Object*)(obj))->f)
+#define MPC(obj)  (((MPC_Object*)(obj))->c)
+
+/* Start of the C-API definitions */
+
+#define MPZ_Type_NUM          0
+#define XMPZ_Type_NUM         1
+#define MPQ_Type_NUM          2
+#define XMPQ_Type_NUM         3
+#define MPFR_Type_NUM         4
+#define XMPFR_Type_NUM        5
+#define MPC_Type_NUM          6
+#define XMPC_Type_NUM         7
+#define CTXT_Type_NUM         8
+#define CTXT_Manager_Type_NUM 9
+#define RandomState_Type_NUM  10
+
+/* The following functions are found in gmpy2_cache. */
+
+#define GMPy_MPZ_New_NUM            11
+#define GMPy_MPZ_New_RETURN         MPZ_Object *
+#define GMPy_MPZ_New_PROTO          (CTXT_Object *context)
+
+#define GMPy_MPZ_NewInit_NUM        12
+#define GMPy_MPZ_NewInit_RETURN     PyObject *
+#define GMPy_MPZ_NewInit_PROTO      (PyTypeObject *type, PyObject *args, PyObject *keywds)
+
+#define GMPy_MPZ_Dealloc_NUM        13
+#define GMPy_MPZ_Dealloc_RETURN     void
+#define GMPy_MPZ_Dealloc_PROTO      (MPZ_Object *self)
+
+/* The following function is found in gmpy2_convert_gmp. */
+
+#define GMPy_MPZ_ConvertArg_NUM     14
+#define GMPy_MPZ_ConvertArg_RETURN  int
+#define GMPy_MPZ_ConvertArg_PROTO   (PyObject *arg, PyObject **ptr)
+
+/* The following functions are found in gmpy2_cache. */
+
+#define GMPy_XMPZ_New_NUM           15
+#define GMPy_XMPZ_New_RETURN        XMPZ_Object *
+#define GMPy_XMPZ_New_PROTO         (CTXT_Object *context)
+
+#define GMPy_XMPZ_NewInit_NUM       16
+#define GMPy_XMPZ_NewInit_RETURN    PyObject *
+#define GMPy_XMPZ_NewInit_PROTO     (PyTypeObject *type, PyObject *args, PyObject *keywds)
+
+#define GMPy_XMPZ_Dealloc_NUM       17
+#define GMPy_XMPZ_Dealloc_RETURN    void
+#define GMPy_XMPZ_Dealloc_PROTO     (XMPZ_Object *self)
+
+/* The following functions are found in gmpy2_cache. */
+
+#define GMPy_MPQ_New_NUM            18
+#define GMPy_MPQ_New_RETURN         MPQ_Object *
+#define GMPy_MPQ_New_PROTO          (CTXT_Object *context)
+
+#define GMPy_MPQ_NewInit_NUM        19
+#define GMPy_MPQ_NewInit_RETURN     PyObject *
+#define GMPy_MPQ_NewInit_PROTO      (PyTypeObject *type, PyObject *args, PyObject *keywds)
+
+#define GMPy_MPQ_Dealloc_NUM        20
+#define GMPy_MPQ_Dealloc_RETURN     void
+#define GMPy_MPQ_Dealloc_PROTO      (MPQ_Object *self)
+
+/* The following function is found in gmpy2_convert_gmp. */
+
+#define GMPy_MPQ_ConvertArg_NUM     21
+#define GMPy_MPQ_ConvertArg_RETURN  int
+#define GMPy_MPQ_ConvertArg_PROTO   (PyObject *arg, PyObject **ptr)
+
+/* Total number of C-API pointers. */
+
+#define GMPy_API_pointers 22
+
+/* End of C-API definitions. */
+
+#ifdef GMPY2_MODULE
 
 /* Define various macros to deal with differences between Python 2 and 3. */
 
@@ -99,19 +297,8 @@ typedef unsigned long Py_uhash_t;
 #define PyIntOrLong_AsLong          PyInt_AsLong
 #endif
 
-/* Support MPIR, if requested. */
-
-#ifdef MPIR
-#  include <mpir.h>
-#else
-#  include <gmp.h>
-#endif
-
-#include <mpfr.h>
-#include <mpc.h>
-
 #ifndef ABS
-#define ABS(a)  (((a) < 0) ? -(a) : (a))
+#  define ABS(a)  (((a) < 0) ? -(a) : (a))
 #endif
 
 #if defined(MS_WIN32) && defined(_MSC_VER)
@@ -150,13 +337,13 @@ typedef unsigned long Py_uhash_t;
 
 #define ALLOC_THRESHOLD 8192
 
-#define INDEX_ERROR(msg) PyErr_SetString(PyExc_IndexError, msg)
-#define TYPE_ERROR(msg) PyErr_SetString(PyExc_TypeError, msg)
-#define VALUE_ERROR(msg) PyErr_SetString(PyExc_ValueError, msg)
-#define ZERO_ERROR(msg) PyErr_SetString(PyExc_ZeroDivisionError, msg)
-#define SYSTEM_ERROR(msg) PyErr_SetString(PyExc_SystemError, msg)
+#define INDEX_ERROR(msg)    PyErr_SetString(PyExc_IndexError, msg)
+#define TYPE_ERROR(msg)     PyErr_SetString(PyExc_TypeError, msg)
+#define VALUE_ERROR(msg)    PyErr_SetString(PyExc_ValueError, msg)
+#define ZERO_ERROR(msg)     PyErr_SetString(PyExc_ZeroDivisionError, msg)
+#define SYSTEM_ERROR(msg)   PyErr_SetString(PyExc_SystemError, msg)
 #define OVERFLOW_ERROR(msg) PyErr_SetString(PyExc_OverflowError, msg)
-#define RUNTIME_ERROR(msg) PyErr_SetString(PyExc_RuntimeError, msg)
+#define RUNTIME_ERROR(msg)  PyErr_SetString(PyExc_RuntimeError, msg)
 
 #define GMPY_DEFAULT -1
 
@@ -171,136 +358,54 @@ typedef unsigned long Py_uhash_t;
  * here. The default value is 100.*/
 #define MAX_CACHE 1000
 
-/* Choose which memory manager is used: Python or C.
- * NOTE: The use of PyMem is not compatible with Sage, therefore it is
- *       disabled by default.
- * NOTE: The use of PyMem is not compatible with releasing the GIL, so
- *       it should never be enabled.
- * Use -DUSE_PYMEM to enable.
- */
-
-#ifdef USE_PYMEM
-#  define GMPY_FREE(NAME) PyMem_Free(NAME)
-#  define GMPY_MALLOC(NAME) PyMem_Malloc(NAME)
-#  define GMPY_REALLOC(NAME, SIZE) PyMem_Realloc(NAME, SIZE)
-#else
-#  define GMPY_FREE(NAME) free(NAME)
-#  define GMPY_MALLOC(NAME) malloc(NAME)
-#  define GMPY_REALLOC(NAME, SIZE) realloc(NAME, SIZE)
-#endif
-
 #ifdef USE_ALLOCA
-#  define TEMP_ALLOC(B, S) \
-    if(S < ALLOC_THRESHOLD) { \
-        B = alloca(S); \
-    } else { \
-        if(!(B = GMPY_MALLOC(S))) { \
-            PyErr_NoMemory(); \
-            return NULL; \
-        } \
+#  define TEMP_ALLOC(B, S)     \
+    if(S < ALLOC_THRESHOLD) {  \
+        B = alloca(S);         \
+    } else {                   \
+        if(!(B = malloc(S))) { \
+            PyErr_NoMemory();  \
+            return NULL;       \
+        }                      \
     }
-#  define TEMP_FREE(B, S) if(S >= ALLOC_THRESHOLD) GMPY_FREE(B)
+#  define TEMP_FREE(B, S) if(S >= ALLOC_THRESHOLD) free(B)
 #else
-#  define TEMP_ALLOC(B, S) \
-    if(!(B = GMPY_MALLOC(S)))  { \
-        PyErr_NoMemory(); \
-        return NULL; \
+#  define TEMP_ALLOC(B, S)     \
+    if(!(B = malloc(S)))  {    \
+        PyErr_NoMemory();      \
+        return NULL;           \
     }
-#  define TEMP_FREE(B, S) GMPY_FREE(B)
+#  define TEMP_FREE(B, S) free(B)
 #endif
 
 /* Various defs to mask differences between Python versions. */
 
-#define Py_RETURN_NOTIMPLEMENTED\
+#define Py_RETURN_NOTIMPLEMENTED \
     return Py_INCREF(Py_NotImplemented), Py_NotImplemented
 
 #ifndef Py_SIZE
-#define Py_SIZE(ob)     (((PyVarObject*)(ob))->ob_size)
+#  define Py_SIZE(ob)     (((PyVarObject*)(ob))->ob_size)
 #endif
 
 #ifndef Py_TYPE
-#define Py_TYPE(ob)     (((PyObject*)(ob))->ob_type)
+#  define Py_TYPE(ob)     (((PyObject*)(ob))->ob_type)
 #endif
 
-#ifdef FAST
-
-/* Very bad code ahead. I've copied portions of mpfr-impl.h and
- * hacked them so they work. This code will only be enabled if you
- * specify the --fast option.
- */
-
-#define MPFR_THREAD_ATTR __thread
-__MPFR_DECLSPEC extern MPFR_THREAD_ATTR unsigned int __gmpfr_flags;
-__MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emin;
-__MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
-
-/* Flags of __gmpfr_flags */
-#define MPFR_FLAGS_UNDERFLOW 1
-#define MPFR_FLAGS_OVERFLOW 2
-#define MPFR_FLAGS_NAN 4
-#define MPFR_FLAGS_INEXACT 8
-#define MPFR_FLAGS_ERANGE 16
-#define MPFR_FLAGS_DIVBY0 32
-#define MPFR_FLAGS_ALL 63
-
-/* Replace some common functions for direct access to the global vars */
-#define mpfr_get_emin() (__gmpfr_emin + 0)
-#define mpfr_get_emax() (__gmpfr_emax + 0)
-
-#define mpfr_clear_flags()      ((void) (__gmpfr_flags = 0))
-#define mpfr_clear_underflow()  ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_UNDERFLOW))
-#define mpfr_clear_overflow()   ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_OVERFLOW))
-#define mpfr_clear_nanflag()    ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_NAN))
-#define mpfr_clear_inexflag()   ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_INEXACT))
-#define mpfr_clear_erangeflag() ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_ERANGE))
-#define mpfr_clear_divby0()     ((void) (__gmpfr_flags &= MPFR_FLAGS_ALL ^ MPFR_FLAGS_DIVBY0))
-#define mpfr_underflow_p()      ((int) (__gmpfr_flags & MPFR_FLAGS_UNDERFLOW))
-#define mpfr_overflow_p()       ((int) (__gmpfr_flags & MPFR_FLAGS_OVERFLOW))
-#define mpfr_nanflag_p()        ((int) (__gmpfr_flags & MPFR_FLAGS_NAN))
-#define mpfr_inexflag_p()       ((int) (__gmpfr_flags & MPFR_FLAGS_INEXACT))
-#define mpfr_erangeflag_p()     ((int) (__gmpfr_flags & MPFR_FLAGS_ERANGE))
-#define mpfr_divby0_p()         ((int) (__gmpfr_flags & MPFR_FLAGS_DIVBY0))
-
-#define mpfr_check_range(x,t,r) \
- ((((x)->_mpfr_exp) >= __gmpfr_emin && ((x)->_mpfr_exp) <= __gmpfr_emax) \
-  ? ((t) ? (__gmpfr_flags |= MPFR_FLAGS_INEXACT, (t)) : 0)                   \
-  : mpfr_check_range(x,t,r))
-
-/* End of the really bad code. Hopefully.
- */
-
-#endif
+/* Import a collection of general purpose macros. */
 
 #include "gmpy2_macros.h"
 
-#include "gmpy2_context.h"
+/* Import the files that complete the definition of the types defined above. */
 
 #include "gmpy2_mpz.h"
 #include "gmpy2_xmpz.h"
-#include "gmpy2_mpz_divmod.h"
-#include "gmpy2_mpz_divmod2exp.h"
-#include "gmpy2_mpz_pack.h"
-#include "gmpy2_mpz_bitops.h"
-#include "gmpy2_mpz_inplace.h"
-#include "gmpy2_xmpz_inplace.h"
-
 #include "gmpy2_mpq.h"
-
 #include "gmpy2_mpfr.h"
-#if MPFR_VERSION < 0x030100
-#  error gmpy2 requires MPFR 3.1.0 or later
-#endif
-
 #include "gmpy2_mpc.h"
-#if MPC_VERSION < 0x010000
-#  error gmpy2 requires MPC 1.0.0 or later
-#endif
+#include "gmpy2_context.h"
+#include "gmpy2_random.h"
 
-#include "gmpy2_convert.h"
-#include "gmpy2_convert_utils.h"
-#include "gmpy2_convert_gmp.h"
-#include "gmpy2_convert_mpfr.h"
-#include "gmpy2_convert_mpc.h"
+/* Import the header files that provide the various functions. */
 
 /* Support object caching, creation, and deletion. */
 
@@ -314,9 +419,35 @@ __MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
 
 #include "gmpy2_binary.h"
 
-/* Support random number generators. */
+/* Support for mpz/xmpz specific functions. */
 
-#include "gmpy2_random.h"
+#include "gmpy2_convert.h"
+#include "gmpy2_convert_utils.h"
+#include "gmpy2_convert_gmp.h"
+#include "gmpy2_convert_mpfr.h"
+#include "gmpy2_convert_mpc.h"
+
+#include "gmpy2_mpz_divmod.h"
+#include "gmpy2_mpz_divmod2exp.h"
+#include "gmpy2_mpz_pack.h"
+#include "gmpy2_mpz_bitops.h"
+#include "gmpy2_mpz_inplace.h"
+#include "gmpy2_mpz_misc.h"
+
+#include "gmpy2_xmpz_inplace.h"
+#include "gmpy2_xmpz_misc.h"
+
+/* Support for mpq specific functions. */
+
+#include "gmpy2_mpq_misc.h"
+
+/* Support for mpfr specific functions. */
+
+#include "gmpy2_mpfr_misc.h"
+
+/* Support for mpc specific functions. */
+
+#include "gmpy2_mpc_misc.h"
 
 /* Support Lucas sequences. */
 
@@ -326,7 +457,9 @@ __MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
 
 #include "gmpy_mpz_prp.h"
 
-/* Begin includes for refactored code. */
+/* Support higher-level Python methods and functions; generally not
+ * specific to a single type.
+ */
 
 #include "gmpy2_abs.h"
 #include "gmpy2_add.h"
@@ -349,17 +482,50 @@ __MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
 #include "gmpy2_predicate.h"
 #include "gmpy2_sign.h"
 #include "gmpy2_richcompare.h"
-#include "gmpy2_mpc_misc.h"
-#include "gmpy2_mpfr_misc.h"
-#include "gmpy2_mpq_misc.h"
-#include "gmpy2_mpz_misc.h"
-#include "gmpy2_xmpz_misc.h"
 
 #ifdef VECTOR
-#include "gmpy2_vector.h"
-#endif
+#  include "gmpy2_vector.h"
+#endif /* defined(VECTOR) */
+
+#else /* defined(GMPY2_MODULE) */
+
+/* This section is used for other C-coded modules that use gmpy2's API. */
+
+static void **GMPy_C_API;
+
+#define MPZ_Check(op)    ((op)->ob_type == (PyTypeObject*)GMPy_C_API[MPZ_Type_NUM])
+#define XMPZ_Check(op)   ((op)->ob_type == (PyTypeObject*)GMPy_C_API[XMPZ_Type_NUM])
+#define MPQ_Check(op)    ((op)->ob_type == (PyTypeObject*)GMPy_C_API[MPQ_Type_NUM])
+#define XMPQ_Check(op)   ((op)->ob_type == (PyTypeObject*)GMPy_C_API[XMPQ_Type_NUM])
+#define MPFR_Check(op)   ((op)->ob_type == (PyTypeObject*)GMPy_C_API[MPFR_Type_NUM])
+#define XMPFR_Check(op)  ((op)->ob_type == (PyTypeObject*)GMPy_C_API[XMPFR_Type_NUM])
+#define MPC_Check(op)    ((op)->ob_type == (PyTypeObject*)GMPy_C_API[MPC_Type_NUM])
+#define XMPC_Check(op)   ((op)->ob_type == (PyTypeObject*)GMPy_C_API[XMPC_Type_NUM])
+
+#define GMPy_MPZ_New         (*(GMPy_MPZ_New_RETURN         (*)GMPy_MPZ_New_PROTO)         GMPy_C_API[GMPy_MPZ_New_NUM])
+#define GMPy_MPZ_NewInit     (*(GMPy_MPZ_NewInit_RETURN     (*)GMPy_MPZ_NewInit_PROTO)     GMPy_C_API[GMPy_MPZ_NewInit_NUM])
+#define GMPy_MPZ_Dealloc     (*(GMPy_MPZ_Dealloc_RETURN     (*)GMPy_MPZ_Dealloc_PROTO)     GMPy_C_API[GMPy_MPZ_Dealloc_NUM])
+#define GMPy_MPZ_ConvertArg  (*(GMPy_MPZ_ConvertArg_RETURN  (*)GMPy_MPZ_ConvertArg_PROTO)  GMPy_C_API[GMPy_MPZ_ConvertArg_NUM])
+
+#define GMPy_XMPZ_New        (*(GMPy_XMPZ_New_RETURN        (*)GMPy_XMPZ_New_PROTO)        GMPy_C_API[GMPy_XMPZ_New_NUM])
+#define GMPy_XMPZ_NewInit    (*(GMPy_XMPZ_NewInit_RETURN    (*)GMPy_XMPZ_NewInit_PROTO)    GMPy_C_API[GMPy_XMPZ_NewInit_NUM])
+#define GMPy_XMPZ_Dealloc    (*(GMPy_XMPZ_Dealloc_RETURN    (*)GMPy_XMPZ_Dealloc_PROTO)    GMPy_C_API[GMPy_XMPZ_Dealloc_NUM])
+
+#define GMPy_MPQ_New         (*(GMPy_MPQ_New_RETURN         (*)GMPy_MPQ_New_PROTO)         GMPy_C_API[GMPy_MPQ_New_NUM])
+#define GMPy_MPQ_NewInit     (*(GMPy_MPQ_NewInit_RETURN     (*)GMPy_MPQ_NewInit_PROTO)     GMPy_C_API[GMPy_MPQ_NewInit_NUM])
+#define GMPy_MPQ_Dealloc     (*(GMPy_MPQ_Dealloc_RETURN     (*)GMPy_MPQ_Dealloc_PROTO)     GMPy_C_API[GMPy_MPQ_Dealloc_NUM])
+#define GMPy_MPQ_ConvertArg  (*(GMPy_MPQ_ConvertArg_RETURN  (*)GMPy_MPQ_ConvertArg_PROTO)  GMPy_C_API[GMPy_MPQ_ConvertArg_NUM])
+
+static int
+import_gmpy2(void)
+{
+    GMPy_C_API = (void **)PyCapsule_Import("gmpy2._C_API", 0);
+    return (GMPy_C_API != NULL) ? 0 : -1;
+}
+
+#endif /* defined(GMPY2_MODULE) */
 
 #ifdef __cplusplus
 }
-#endif
+#endif /* defined(__cplusplus */
 #endif /* !defined(Py_GMPYMODULE_H */

@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -41,11 +41,6 @@ extern "C" {
  *
  * This file is expected to be included from gmpy.h
  */
-
-typedef struct {
-    PyObject_HEAD
-    gmp_randstate_t state;
-} RandomState_Object;
 
 static PyTypeObject RandomState_Type;
 #define RANDOM_STATE(obj) (((RandomState_Object *)(obj))->state)

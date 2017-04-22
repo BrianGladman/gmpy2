@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015 Case Van Horsen                                          *
+ *           2015, 2016, 2017 Case Van Horsen                              *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -41,7 +41,6 @@ static MPZ_Object *    GMPy_MPZ_From_PyIntOrLong(PyObject *obj, CTXT_Object *con
 static MPZ_Object *    GMPy_MPZ_From_PyStr(PyObject *s, int base, CTXT_Object *context);
 static MPZ_Object *    GMPy_MPZ_From_PyFloat(PyObject *obj, CTXT_Object *context);
 
-static MPZ_Object *    GMPy_MPZ_From_Number(PyObject *obj, CTXT_Object *context);
 static MPZ_Object *    GMPy_MPZ_From_Integer(PyObject *obj, CTXT_Object *context);
 
 static PyObject *      GMPy_MPZ_Str_Slot(MPZ_Object *self);
@@ -56,10 +55,11 @@ static PyObject *      GMPy_PyIntOrLong_From_MPZ(MPZ_Object *obj, CTXT_Object *c
 static PyObject *      GMPy_PyFloat_From_MPZ(MPZ_Object *obj, CTXT_Object *context);
 static PyObject *      GMPy_PyStr_From_MPZ(MPZ_Object *obj, int base, int option, CTXT_Object *context);
 
-/* Helper function not currently used. */
-#if 0
-static int             GMPy_MPZ_convert_arg(PyObject *arg, PyObject **ptr);
+#ifdef SHARED
+/* static int             GMPy_MPZ_ConvertArg(PyObject *arg, PyObject **ptr); */
+static GMPy_MPZ_ConvertArg_RETURN GMPy_MPZ_ConvertArg GMPy_MPZ_ConvertArg_PROTO;
 #endif
+
 
 /* ======================================================================== *
  * Conversion between native Python objects/MPZ and XMPZ.                   *
@@ -71,13 +71,9 @@ static XMPZ_Object *   GMPy_XMPZ_From_PyFloat(PyObject *self, CTXT_Object *conte
 static XMPZ_Object *   GMPy_XMPZ_From_MPZ(MPZ_Object *obj, CTXT_Object *context);
 static XMPZ_Object *   GMPy_XMPZ_From_XMPZ(XMPZ_Object *obj, CTXT_Object *context);
 
-static XMPZ_Object *   GMPy_XMPZ_From_Number(PyObject *obj, CTXT_Object *context);
-
 static PyObject *      GMPy_XMPZ_Str_Slot(XMPZ_Object *self);
 static PyObject *      GMPy_XMPZ_Repr_Slot(XMPZ_Object *self);
 
-//~ static PyObject *      GMPy_PyLong_From_XMPZ(XMPZ_Object *self, CTXT_Object *context);
-//~ static PyObject *      GMPy_PyIntOrLong_From_XMPZ(XMPZ_Object *self, CTXT_Object *context);
 static PyObject *      GMPy_PyStr_From_XMPZ(XMPZ_Object *self, int base, int option, CTXT_Object *context);
 static MPZ_Object *    GMPy_MPZ_From_XMPZ(XMPZ_Object *obj, CTXT_Object *context);
 
@@ -111,8 +107,10 @@ static PyObject *      GMPy_PyLong_From_MPQ(MPQ_Object *obj, CTXT_Object *contex
 static PyObject *      GMPy_MPQ_Long_Slot(MPQ_Object *obj);
 #endif
 
-/* Miscellaneous rational conversion functions. */
-int GMPy_MPQ_convert_arg(PyObject *arg, PyObject **ptr);
+#ifdef SHARED
+/* int GMPy_MPQ_convert_arg(PyObject *arg, PyObject **ptr); */
+static GMPy_MPQ_ConvertArg_RETURN GMPy_MPQ_ConvertArg GMPy_MPQ_ConvertArg_PROTO;
+#endif
 
 #ifdef __cplusplus
 }
