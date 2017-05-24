@@ -22,6 +22,7 @@
     <ProjectGuid>{3CC03A4A-FA38-473F-B3D7-0B9660B758AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gmpy2.python33</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
