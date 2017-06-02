@@ -505,8 +505,6 @@ static PyObject *GMPyExc_Erange = NULL;
 
 #include "gmpy2_random.c"
 
-#include "./posix64/mpz_aprcl.c"
-
 /* Support for Lucas sequences. */
 
 #include "gmpy_mpz_lucas.c"
@@ -615,7 +613,6 @@ static PyMethodDef Pygmpy_methods [] =
     { "iroot_rem", GMPy_MPZ_Function_IrootRem, METH_VARARGS, GMPy_doc_mpz_function_iroot_rem },
     { "isqrt", GMPy_MPZ_Function_Isqrt, METH_O, GMPy_doc_mpz_function_isqrt },
     { "isqrt_rem", GMPy_MPZ_Function_IsqrtRem, METH_O, GMPy_doc_mpz_function_isqrt_rem },
-    { "is_aprcl_prime", GMPy_MPZ_is_aprcl_prime, METH_O, doc_mpz_is_aprcl_prime },
     { "is_bpsw_prp", GMPY_mpz_is_bpsw_prp, METH_VARARGS, doc_mpz_is_bpsw_prp },
     { "is_congruent", GMPy_MPZ_Function_IsCongruent, METH_VARARGS, GMPy_doc_mpz_function_is_congruent },
     { "is_divisible", GMPy_MPZ_Function_IsDivisible, METH_VARARGS, GMPy_doc_mpz_function_is_divisible },
@@ -761,7 +758,6 @@ static PyMethodDef Pygmpy_methods [] =
     { "maxnum", GMPy_Context_Maxnum, METH_VARARGS, GMPy_doc_function_maxnum },
     { "minnum", GMPy_Context_Minnum, METH_VARARGS, GMPy_doc_function_minnum },
     { "modf", GMPy_Context_Modf, METH_O, GMPy_doc_function_modf },
-    { "mpfr", (PyCFunction)GMPy_MPFR_Factory, METH_VARARGS | METH_KEYWORDS, GMPy_doc_mpfr_factory },
     { "mpfr_from_old_binary", GMPy_MPFR_From_Old_Binary, METH_O, doc_mpfr_from_old_binary },
     { "mpfr_random", GMPy_MPFR_random_Function, METH_VARARGS, GMPy_doc_mpfr_random_function },
     { "mpfr_grandom", GMPy_MPFR_grandom_Function, METH_VARARGS, GMPy_doc_mpfr_grandom_function },
@@ -1074,6 +1070,11 @@ PyMODINIT_FUNC initgmpy2(void)
     Py_INCREF(&MPQ_Type);
     PyModule_AddObject(gmpy_module, "mpq", (PyObject*)&MPQ_Type);
 
+    /* Add the MPFR type to the module namespace. */
+
+    Py_INCREF(&MPFR_Type);
+    PyModule_AddObject(gmpy_module, "mpfr", (PyObject*)&MPFR_Type);
+
     /* Initialize thread local contexts. */
 #ifdef WITHOUT_THREADS
     module_context = (CTXT_Object*)GMPy_CTXT_New();
@@ -1176,7 +1177,7 @@ PyMODINIT_FUNC initgmpy2(void)
         /* LCOV_EXCL_STOP */
     }
 
-#ifndef STATIC
+#ifdef SHARED
     /* Create the Capsule for the C-API. */
 
     GMPy_C_API[MPZ_Type_NUM] = (void*)&MPZ_Type;
@@ -1204,6 +1205,11 @@ PyMODINIT_FUNC initgmpy2(void)
     GMPy_C_API[GMPy_MPQ_NewInit_NUM] = (void*)GMPy_MPQ_NewInit;
     GMPy_C_API[GMPy_MPQ_Dealloc_NUM] = (void*)GMPy_MPQ_Dealloc;
     GMPy_C_API[GMPy_MPQ_ConvertArg_NUM] = (void*)GMPy_MPQ_ConvertArg;
+
+    GMPy_C_API[GMPy_MPFR_New_NUM] = (void*)GMPy_MPFR_New;
+    GMPy_C_API[GMPy_MPFR_NewInit_NUM] = (void*)GMPy_MPFR_NewInit;
+    GMPy_C_API[GMPy_MPFR_Dealloc_NUM] = (void*)GMPy_MPFR_Dealloc;
+    GMPy_C_API[GMPy_MPFR_ConvertArg_NUM] = (void*)GMPy_MPFR_ConvertArg;
 
     c_api_object = PyCapsule_New((void *)GMPy_C_API, "gmpy2._C_API", NULL);
 

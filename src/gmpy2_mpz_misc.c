@@ -1653,7 +1653,11 @@ GMPy_MPZ_Method_SubScript(MPZ_Object *self, PyObject *item)
         Py_ssize_t start, stop, step, slicelength, cur, i;
         MPZ_Object *result;
 
-        if (PySlice_GetIndicesEx(_PyITEM_CAST(item), mpz_sizeinbase(self->z, 2), &start, &stop, &step, &slicelength) < 0) {
+#if PY_VERSION_HEX > 0x030200A4
+        if (PySlice_GetIndicesEx(item, mpz_sizeinbase(self->z, 2), &start, &stop, &step, &slicelength) < 0) {
+#else
+        if (PySlice_GetIndicesEx((PySliceObject*)item, mpz_sizeinbase(self->z, 2), &start, &stop, &step, &slicelength) < 0) {
+#endif
             return NULL;
         }
 
