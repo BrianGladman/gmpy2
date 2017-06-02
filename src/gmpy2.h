@@ -90,12 +90,6 @@ typedef unsigned long Py_uhash_t;
 #  define _PyHASH_IMAG 1000003
 #endif
 
-#if PY_VERSION_HEX > 0x030200A4
-#  define _PyITEM_CAST(x)  (x) 
-#else
-#  define _PyITEM_CAST(x)  ((PySliceObject*)x)
-#endif
-
 /* GMPY2 Public API */
 
 /* Types
