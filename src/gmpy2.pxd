@@ -34,6 +34,21 @@ cdef extern from "mpfr.h":
 
     ctypedef long mpfr_prec_t
 
+    ctypedef enum mpfr_rnd_t:
+        MPFR_RNDN
+        MPFR_RNDZ
+        MPFR_RNDU
+        MPFR_RNDD
+        MPFR_RNDA
+        MPFR_RNDF
+        MPFR_RNDNA
+        GMP_RNDN
+        GMP_RNDZ
+        GMP_RNDU
+        GMP_RNDD
+
+    mpfr_prec_t mpfr_get_prec (mpfr_t x)
+    int mpfr_set (mpfr_t rop, mpfr_t op, mpfr_rnd_t rnd)
 
 cdef extern from "mpc.h":
     # mpc complexes
@@ -42,7 +57,28 @@ cdef extern from "mpc.h":
     ctypedef __mpc_struct mpc_t[1];
     ctypedef __mpc_struct *mpc_ptr;
     ctypedef const __mpc_struct *mpc_srcptr;
+    ctypedef enum mpc_rnd_t:
+        MPC_RNDNN
+        MPC_RNDNZ
+        MPC_RNDNU
+        MPC_RNDND
+        MPC_RNDZN
+        MPC_RNDZZ
+        MPC_RNDZU
+        MPC_RNDZD
+        MPC_RNDUN
+        MPC_RNDUZ
+        MPC_RNDUU
+        MPC_RNDUD
+        MPC_RNDDN
+        MPC_RNDDZ
+        MPC_RNDDU
+        MPC_RNDDD
 
+    mpfr_prec_t mpc_get_prec (mpc_srcptr x)
+    void mpc_get_prec2 (mpfr_prec_t *pr, mpfr_prec_t *pi, mpc_srcptr x)
+    int  mpc_set (mpc_ptr rop, mpc_srcptr op, mpc_rnd_t rnd)
+    int  mpc_set_fr_fr (mpc_ptr rop, mpfr_srcptr rp, mpfr_srcptr ip, mpc_rnd_t rnd)
 
 cdef extern from "gmpy2/gmpy2.h":
     # initialize the C-API
@@ -71,8 +107,9 @@ cdef extern from "gmpy2/gmpy2.h":
     # appropriately. Prefer MPFR_New() declared below.
     cdef (MPFR_Object *) GMPy_MPFR_New(mpfr_prec_t prec, void *)
 
-    # TODO
-    # cdef (MPC_Object *) GMPy_MPC_New(void *)
+    # WARNING: this function might cause memory leak if not used
+    # appropriately. Prefer MPC_New() declared below.
+    cdef (MPC_Object *) GMPy_MPC_New(mpfr_prec_t rprec, mpfr_prec_t iprec, void *)
 
     # access to the mpz_t field of a gmpy2 mpz
     cdef mpz_t MPZ(MPZ_Object *)
@@ -119,6 +156,13 @@ cdef inline MPFR_New(mpfr_prec_t prec):
     Py_DECREF(<PyObject *> res)
     return res
 
+# Return a new gmpy2 mpc object
+# equivalent to mpc.__new__(mpc)
+cdef inline MPC_New(mpfr_prec_t rprec, mpfr_prec_t iprec):
+    res = <object> GMPy_MPC_New(rprec, iprec, NULL)  # Cython increases refcount!
+    Py_DECREF(<PyObject *> res)
+    return res
+
 # Build a gmpy2 mpz from a gmp mpz
 cdef inline GMPy_MPZ_From_mpz(mpz_srcptr z):
     res = MPZ_New()
@@ -138,14 +182,23 @@ cdef inline GMPy_MPQ_From_mpz(mpz_srcptr num, mpz_srcptr den):
     mpq_set_den(MPQ(<MPQ_Object *> res), den)
     return res
 
-# TODO
 # Build a gmpy2 mpfr from a mpfr
-# cdef inline GMPy_MPQ_From_mpfr(mpfr_srcptr x)
+cdef inline GMPy_MPFR_From_mpfr(mpfr_srcptr x):
+    res = MPFR_New(mpfr_get_prec(x))
+    mpfr_set(MPFR(<MPFR_Object *> res), x, MPFR_RNDN)
+    return res
 
-# TODO
 # Build a gmpy2 mpc from a mpc
-# cdef inline GMPy_MPC_From_mpc(mpc_srcptr z)
+cdef inline GMPy_MPC_From_mpc(mpc_srcptr c):
+    cdef mpfr_prec_t pr
+    cdef mpfr_prec_t pi
+    mpc_get_prec2(&pr, &pi, c)
+    res = MPC_New(pr, pi)
+    mpc_set(MPC(<MPC_Object *> res), c, MPC_RNDNN)
+    return res
 
-# TODO
 # Build a gmpy2 mpc from a real part mpfr and an imaginary part mpfr
-# cdef inline GMPy_MPC_From_mpfr(mpfr_srcptr re, mpfr_scrptr im)
+cdef inline GMPy_MPC_From_mpfr(mpfr_srcptr re, mpfr_srcptr im):
+    res = MPC_New(mpfr_get_prec(re), mpfr_get_prec(im))
+    mpc_set_fr_fr (MPC(<MPC_Object *> res), re, im, MPC_RNDNN)
+    return res
