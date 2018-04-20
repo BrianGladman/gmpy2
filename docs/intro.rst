@@ -37,17 +37,12 @@ gmpy2 Versions
 This manual documents the two major versions of gmpy2. Sections that are
 specific to a particular version will be identified as such.
 
-There are two versions of gmpy2. The 2.0 version is the stable release that
-only receives bug fixes and very minor updates. Version 2.1 is currently under
-active development and includes several new capabilities. Most gmpy2 2.0 code
-should run unchanged with gmpy2 2.1
+The 2.0 version is the stable release that only receives bug fixes and very
+minor updates. Version 2.1 is currently under active development and includes
+several new capabilities. Most gmpy2 2.0 code should run unchanged with
+gmpy2 2.1.
 
-Enhancements in gmpy2 2.1
--------------------------
-
-The most significant changes in gmpy2 2.1 are:
-
-Changes in gmpy2 2.1.0a0
+Changes in gmpy2 2.1.0a1
 ------------------------
 
 * Thread-safe contexts are now supported. Properly integrating thread-safe
@@ -66,26 +61,27 @@ Changes in gmpy2 2.1.0a0
 * In previous versions of gmpy2, *gmpy2.mpz* was a factory function that
   returned an  *mpz* instance. *gmpy2.mpz* is now an actual type. The same
   is true for the other gmpy2 types.
-* If a Python object has an __mpz__ method, it will be called bye *mpz()* to
+* If a Python object has an __mpz__ method, it will be called by *mpz()* to
   allow an unrecognized type to be converted to an mpz instance. The same is
   true for the other gmpy2 types.
 * Support for Cython via the addition of a C-API and a gmpy2.pxd file.
 
-Please see the detailed change list
+Changes in gmpy2 2.1.0a2
+------------------------
+
+* Revised build system.
+* Removal of unused code/macros.
+* Cleanup of Cython interface.
 
 Installation
 ============
 
-This section will be updated soon to reflect improved support of pip and the
-wheel format.
-
 Installing gmpy2 on Windows
 ---------------------------
 
-Pre-compiled versions of gmpy2 are available at `Downloads
-<http://code.google.com/p/gmpy/downloads/list>`_ . Please
-select the installer that corresponds to the version of Python installed on
-your computer. Note that either a 32 or 64-bit version of Python can be
+Pre-compiled versions of gmpy2 are available at `https://pypi.python.org/pypi/gmpy2`.
+Please select the installer that corresponds to the version of Python installed
+on your computer. Note that either a 32 or 64-bit version of Python can be
 installed on a 64-bit version of Windows. If you get an error message
 stating that Python could not be found in the registry, you have the wrong
 version of the gmpy2 installer.
@@ -104,8 +100,12 @@ later is required. MPC 1.0.1 or later is required for complex arithmetic.
 Short Instructions
 ^^^^^^^^^^^^^^^^^^
 
-If your system includes sufficiently recent versions of GMP, MPFR and MPC, and
-you have the development libraries installed, compiling should be as simple as:
+gmpy2 requires the development files for GMP, MPFR, and MPC. The actual package
+that provides these files varies between Linux distributions. Install "libmpc-dev"
+(or its equivalent) is usually sufficient.
+
+If your system has the development libraries installed, compiling should be as
+simple as:
 
 ::
 
@@ -116,6 +116,13 @@ If this fails, read on.
 
 Detailed Instructions
 ^^^^^^^^^^^^^^^^^^^^^
+
+Note: You really shouldn't need to do this. Unless you need the capabilities
+provided a newer GMP/MPFR/MPC, you should use the versions provided by your
+distribution.
+
+Note: The following instructions are currently out-of-date and will be revised
+for the next alpha release.
 
 If your Linux distribution does not support recent versions of GMP, MPFR and
 MPC, you will need to compile your own versions. To avoid any possible conflict
@@ -200,8 +207,11 @@ Options for setup.py
     Force the use of GMP instead of MPIR. MPIR is the default library on Windows
     operating systems.
 
-**--prefix=<...>**
-    Specify the directory prefix where GMP/MPIR, MPFR, and MPC are located. For
-    example, **--prefix=/opt/local** instructs setup.py to search /opt/local/include
-    for header files and /opt/local/lib for libraries.
+**--shared=<...>**
+    Add the specified directory prefix to the beginning of the list of
+    directories that are searched for GMP, MPFR, and MPC shared libraries.
+
+**--static=<...>**
+    Create a statically linked library using libraries from the specified path,
+    or from the operating system's default library location if no path is specified
 

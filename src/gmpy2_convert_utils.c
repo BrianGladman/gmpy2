@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017 Case Van Horsen                              *
+ *           2015, 2016, 2017, 2018 Case Van Horsen                        *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -124,7 +124,7 @@ GMPy_Integer_AsLongAndError(PyObject *vv, int *error)
 
     if (CHECK_MPZANY(vv)) {
         if (mpz_fits_slong_p(MPZ(vv))) {
-            res = mpz_get_si(MPZ(vv));
+            res = (long) mpz_get_si(MPZ(vv));
         }
         else {
             *error = mpz_sgn(MPZ(vv));
@@ -192,7 +192,7 @@ GMPy_Integer_AsUnsignedLongAndError(PyObject *vv, int *error)
 
     if (CHECK_MPZANY(vv)) {
         if (mpz_fits_ulong_p(MPZ(vv))) {
-            res = mpz_get_ui(MPZ(vv));
+            res = (unsigned long) mpz_get_ui(MPZ(vv));
         }
         else {
             *error = mpz_sgn(MPZ(vv));
@@ -348,7 +348,7 @@ static unsigned PY_LONG_LONG
 GMPy_Integer_AsUnsignedLongLongAndError(PyObject *vv, int *error)
 {
     register PyLongObject *v;
-    unsigned PY_LONG_LONG x, prev, res;
+    unsigned PY_LONG_LONG x, prev, res = 0;
     Py_ssize_t i;
     int sign;
 
@@ -368,7 +368,6 @@ GMPy_Integer_AsUnsignedLongLongAndError(PyObject *vv, int *error)
 #endif
 
     if (PyLong_Check(vv)) {
-        res = 0;
         v = (PyLongObject *)vv;
         i = Py_SIZE(v);
 
@@ -399,7 +398,6 @@ GMPy_Integer_AsUnsignedLongLongAndError(PyObject *vv, int *error)
     }
 
     if (CHECK_MPZANY(vv)) {
-        res = 0;
         sign = mpz_sgn(MPZ(vv));
         if (sign < 0) {
             *error = -1;

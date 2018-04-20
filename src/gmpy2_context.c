@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017 Case Van Horsen                              *
+ *           2015, 2016, 2017, 2018 Case Van Horsen                        *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -84,9 +84,6 @@ GMPy_CTXT_New(void)
         result->ctx.imag_round = -1;
         result->ctx.allow_complex = 0;
         result->ctx.rational_division = 0;
-        result->ctx.mpfr_divmod_exact = 0;
-        result->ctx.quiet_nan = 0;
-        result->ctx.was_nan = 0;
 
 #ifndef WITHOUT_THREADS
         result->tstate = NULL;
@@ -231,7 +228,7 @@ GMPy_CTXT_Set(PyObject *self, PyObject *other)
 #endif
 
 PyDoc_STRVAR(GMPy_doc_context_ieee,
-"ieee(size[,quiet_nan=True[,subnormalize=True]]) -> context\n\n"
+"ieee(size[,subnormalize=True]) -> context\n\n"
 "Return a new context corresponding to a standard IEEE floating point\n"
 "format. The supported sizes are 16, 32, 64, 128, and multiples of\n"
 "32 greater than 128.");
@@ -241,10 +238,10 @@ GMPy_CTXT_ieee(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     long bitwidth;
     double bitlog2;
-    int quiet_mode=1, sub_mode=1;
+    int sub_mode=1;
     PyObject *temp;
     CTXT_Object *result;
-    static char *kwlist[] = {"subnormalize", "quiet_nan", NULL};
+    static char *kwlist[] = {"subnormalize", NULL};
 
     if (PyTuple_GET_SIZE(args) != 1) {
         TYPE_ERROR("ieee() requires 'int' argument");
@@ -269,7 +266,7 @@ GMPy_CTXT_ieee(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     if (!(PyArg_ParseTupleAndKeywords(temp, kwargs,
-            "|ii", kwlist, &sub_mode, &quiet_mode))) {
+            "|ii", kwlist, &sub_mode))) {
         VALUE_ERROR("invalid keyword arguments for ieee()");
         Py_DECREF(temp);
         return NULL;
@@ -278,8 +275,6 @@ GMPy_CTXT_ieee(PyObject *self, PyObject *args, PyObject *kwargs)
 
     if (sub_mode)
         sub_mode = 1;
-    if (quiet_mode)
-        quiet_mode = 1;
 
     if (!(result = (CTXT_Object*)GMPy_CTXT_New())) {
         return NULL;
@@ -313,7 +308,6 @@ GMPy_CTXT_ieee(PyObject *self, PyObject *args, PyObject *kwargs)
     }
 
     result->ctx.subnormalize = sub_mode;
-    result->ctx.quiet_nan = quiet_mode;
     result->ctx.emin = 4 - result->ctx.emax - result->ctx.mpfr_prec;
     return (PyObject*)result;
 }
@@ -361,7 +355,7 @@ GMPy_CTXT_Repr_Slot(CTXT_Object *self)
     PyObject *result = NULL;
     int i = 0;
 
-    tuple = PyTuple_New(25);
+    tuple = PyTuple_New(23);
     if (!tuple)
         return NULL;
 
@@ -377,9 +371,7 @@ GMPy_CTXT_Repr_Slot(CTXT_Object *self)
             "        trap_erange=%s, erange=%s,\n"
             "        trap_divzero=%s, divzero=%s,\n"
             "        allow_complex=%s,\n"
-            "        rational_division=%s,\n"
-            "        mpfr_divmod_exact=%s,\n"
-            "        quiet_nan=%s)"
+            "        rational_division=%s)"
             );
     if (!format) {
         Py_DECREF(tuple);
@@ -415,8 +407,6 @@ GMPy_CTXT_Repr_Slot(CTXT_Object *self)
     PyTuple_SET_ITEM(tuple, i++, PyBool_FromLong(self->ctx.divzero));
     PyTuple_SET_ITEM(tuple, i++, PyBool_FromLong(self->ctx.allow_complex));
     PyTuple_SET_ITEM(tuple, i++, PyBool_FromLong(self->ctx.rational_division));
-    PyTuple_SET_ITEM(tuple, i++, PyBool_FromLong(self->ctx.mpfr_divmod_exact));
-    PyTuple_SET_ITEM(tuple, i++, PyBool_FromLong(self->ctx.quiet_nan));
 
     if (!PyErr_Occurred())
         result = Py2or3String_Format(format, tuple);
@@ -478,7 +468,7 @@ _parse_context_args(CTXT_Object *ctxt, PyObject *kwargs)
         "real_round", "imag_round", "emax", "emin", "subnormalize",
         "trap_underflow", "trap_overflow", "trap_inexact",
         "trap_invalid", "trap_erange", "trap_divzero", "allow_complex",
-        "rational_division", "mpfr_divmod_exact", "quiet_nan", NULL };
+        "rational_division", NULL };
 
     /* Create an empty dummy tuple to use for args. */
 
@@ -497,7 +487,7 @@ _parse_context_args(CTXT_Object *ctxt, PyObject *kwargs)
     x_trap_divzero = ctxt->ctx.traps & TRAP_DIVZERO;
 
     if (!(PyArg_ParseTupleAndKeywords(args, kwargs,
-            "|llliiilliiiiiiiiiii", kwlist,
+            "|llliiilliiiiiiiii", kwlist,
             &ctxt->ctx.mpfr_prec,
             &ctxt->ctx.real_prec,
             &ctxt->ctx.imag_prec,
@@ -514,9 +504,7 @@ _parse_context_args(CTXT_Object *ctxt, PyObject *kwargs)
             &x_trap_erange,
             &x_trap_divzero,
             &ctxt->ctx.allow_complex,
-            &ctxt->ctx.rational_division,
-            &ctxt->ctx.mpfr_divmod_exact,
-            &ctxt->ctx.quiet_nan))) {
+            &ctxt->ctx.rational_division))) {
         VALUE_ERROR("invalid keyword arguments for context");
         Py_DECREF(args);
         return 0;
@@ -539,8 +527,6 @@ _parse_context_args(CTXT_Object *ctxt, PyObject *kwargs)
 
     if (ctxt->ctx.subnormalize)
         ctxt->ctx.subnormalize = 1;
-    if (ctxt->ctx.quiet_nan)
-        ctxt->ctx.quiet_nan = 1;
 
     /* Sanity check for values. */
     if (ctxt->ctx.mpfr_prec < MPFR_PREC_MIN ||
@@ -702,11 +688,7 @@ PyDoc_STRVAR(GMPy_doc_context,
 "    allow_complex:     if True, allow mpfr functions to return mpc\n"
 "                       if False, mpfr functions cannot return an mpc\n"
 "    rational_division: if True, mpz/mpz returns an mpq\n"
-"                       if False, mpz/mpz follows default behavior\n"
-"    mpfr_divmod_exact: if True, divmod(mpfr,mpfr) calculations are done\n"
-"                       exactly by intermediate conversion to mpq.\n"
-"    quiet_nan:         if True, the invalid flag is not set if one of\n"
-"                       arguments to a function is Nan.\n");
+"                       if False, mpz/mpz follows default behavior\n");
 #if 0
 "\nMethods\n"
 "    abs(x)          return absolute value of x\n"
@@ -967,8 +949,6 @@ GETSET_BOOLEAN_BIT(trap_erange, TRAP_ERANGE);
 GETSET_BOOLEAN_BIT(trap_divzero, TRAP_DIVZERO);
 GETSET_BOOLEAN(allow_complex)
 GETSET_BOOLEAN(rational_division)
-GETSET_BOOLEAN(mpfr_divmod_exact)
-GETSET_BOOLEAN(quiet_nan)
 
 static PyObject *
 GMPy_CTXT_Get_precision(CTXT_Object *self, void *closure)
@@ -1240,8 +1220,6 @@ static PyGetSetDef GMPyContext_getseters[] = {
     ADD_GETSET(trap_divzero),
     ADD_GETSET(allow_complex),
     ADD_GETSET(rational_division),
-    ADD_GETSET(mpfr_divmod_exact),
-    ADD_GETSET(quiet_nan),
     {NULL}
 };
 

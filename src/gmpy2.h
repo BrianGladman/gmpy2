@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * gmpy.h                                                                  *
+ * gmpy2.h                                                                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017 Case Van Horsen                              *
+ *           2015, 2016, 2017, 2018 Case Van Horsen                        *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -178,10 +178,6 @@ typedef struct {
     mpfr_rnd_t imag_round;   /* current rounding mode for Im(MPC) */
     int allow_complex;       /* if 1, allow mpfr functions to return an mpc */
     int rational_division;   /* if 1, mpz/mpz returns an mpq result */
-    int mpfr_divmod_exact;   /* if 1, divmod(mpfr, mpfr) uses mpq */
-    int quiet_nan;           /* if 1, NaN exception not set if input is Nan */
-    /* The following field is for internal use only. */
-    int was_nan;             /* if 1, at least one of the inputs was NaN */
 } gmpy_context;
 
 typedef struct {
@@ -364,8 +360,6 @@ typedef struct {
 #  else
 #    pragma comment(lib,"gmp.lib")
 #  endif
-#  define isnan _isnan
-#  define isinf !_finite
 #  define USE_ALLOCA 1
 #  define inline __inline
 #endif

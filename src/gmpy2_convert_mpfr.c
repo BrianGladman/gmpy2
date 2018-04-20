@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017 Case Van Horsen                              *
+ *           2015, 2016, 2017, 2018 Case Van Horsen                        *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -214,6 +214,7 @@ GMPy_MPFR_From_MPZ(MPZ_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result;
     int was_one = 0;
+    size_t bitlen;
 
     assert(CHECK_MPZANY(obj));
 
@@ -223,9 +224,15 @@ GMPy_MPFR_From_MPZ(MPZ_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
         prec = GET_MPFR_PREC(context);
 
     if (prec == 1) {
-        prec = mpz_sizeinbase(obj->z, 2);
-        if (prec < MPFR_PREC_MIN)
-            prec = MPFR_PREC_MIN;
+        bitlen = mpz_sizeinbase(obj->z, 2);
+        if (bitlen < MPFR_PREC_MIN) {
+            bitlen = MPFR_PREC_MIN;
+	}
+	if (bitlen > MPFR_PREC_MAX) {
+	    OVERFLOW_ERROR("'mpz' to large to convert to 'mpfr'\n");
+	    return NULL;
+	}
+	prec = (mpfr_prec_t)bitlen;
         was_one = 1;
     }
 
@@ -235,7 +242,6 @@ GMPy_MPFR_From_MPZ(MPZ_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
         if (!was_one) {
             GMPY_MPFR_CHECK_RANGE(result, context);
         }
-        GMPY_MPFR_SUBNORMALIZE(result, context);
         GMPY_MPFR_EXCEPTIONS(result, context);
     }
 

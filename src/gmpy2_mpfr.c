@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017 Case Van Horsen                              *
+ *           2015, 2016, 2017, 2018 Case Van Horsen                        *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -65,9 +65,7 @@ _GMPy_MPFR_Cleanup(MPFR_Object **v, CTXT_Object *ctext)
     /* GMPY_MPFR_EXCEPTIONS(V, CTX) */
     ctext->ctx.underflow |= mpfr_underflow_p();
     ctext->ctx.overflow |= mpfr_overflow_p();
-    if (!(ctext->ctx.quiet_nan && ctext->ctx.was_nan)) {
-        ctext->ctx.invalid |= mpfr_nanflag_p();
-    }
+    ctext->ctx.invalid |= mpfr_nanflag_p();
     ctext->ctx.inexact |= mpfr_inexflag_p();
     ctext->ctx.divzero |= mpfr_divby0_p();
     if (ctext->ctx.traps) {
@@ -86,7 +84,7 @@ _GMPy_MPFR_Cleanup(MPFR_Object **v, CTXT_Object *ctext)
             Py_XDECREF((PyObject*)(*v));
             (*v) = NULL;
         }
-        if ((ctext->ctx.traps & TRAP_INVALID) && !(ctext->ctx.quiet_nan && ctext->ctx.was_nan) && mpfr_nanflag_p()) {
+        if ((ctext->ctx.traps & TRAP_INVALID) && mpfr_nanflag_p()) {
             PyErr_SetString(GMPyExc_Invalid, "invalid operation");
             Py_XDECREF((PyObject*)(*v));
             (*v) = NULL;
