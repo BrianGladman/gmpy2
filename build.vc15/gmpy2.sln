@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python27", "gmpy2.python27\gmpy2.python27.vcxproj", "{2410C45F-AA6C-4F9E-9B4F-E1F9356C3DFE}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python35", "gmpy2.python35\gmpy2.python35.vcxproj", "{216B2B04-CAD3-4E47-AB29-9C56AD126C8A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python36", "gmpy2.python36\gmpy2.python36.vcxproj", "{AE465F20-397D-4C8F-B2FF-6D32218FD0D8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python37", "gmpy2.python37\gmpy2.python37.vcxproj", "{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,8 +93,19 @@ Global
 		{AE465F20-397D-4C8F-B2FF-6D32218FD0D8}.Release|Win32.Build.0 = Release|Win32
 		{AE465F20-397D-4C8F-B2FF-6D32218FD0D8}.Release|x64.ActiveCfg = Release|x64
 		{AE465F20-397D-4C8F-B2FF-6D32218FD0D8}.Release|x64.Build.0 = Release|x64
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Debug|Win32.Build.0 = Debug|Win32
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Debug|x64.ActiveCfg = Debug|x64
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Debug|x64.Build.0 = Debug|x64
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Release|Win32.ActiveCfg = Release|Win32
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Release|Win32.Build.0 = Release|Win32
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Release|x64.ActiveCfg = Release|x64
+		{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BF422ADA-7716-4AB6-A27E-5823A5195290}
 	EndGlobalSection
 EndGlobal

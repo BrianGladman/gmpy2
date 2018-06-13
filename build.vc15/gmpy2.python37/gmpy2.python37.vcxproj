@@ -19,11 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{AE465F20-397D-4C8F-B2FF-6D32218FD0D8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>gmpy2.python34</RootNamespace>
+    <RootNamespace>gmpy2.python37</RootNamespace>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{CFD87BDA-6823-44C7-824A-2D5BFF2CD840}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -103,7 +103,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;SHARED;_DEBUG;_WINDOWS;_USRDLL;GMPY2_36_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;SHARED;_DEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -117,7 +117,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;SHARED;_WIN64;_DEBUG;_WINDOWS;_USRDLL;GMPY2_36_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;SHARED;_WIN64;_DEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(mp_dir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -134,7 +134,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;SHARED;NDEBUG;_WINDOWS;_USRDLL;GMPY2_36_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;SHARED;NDEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -152,7 +152,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;SHARED;_WIN64;NDEBUG;_WINDOWS;_USRDLL;GMPY2_36_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;SHARED;_WIN64;NDEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(mp_dir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
