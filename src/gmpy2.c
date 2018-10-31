@@ -367,6 +367,13 @@
  *   Cleanup of Cython interface.
  *
  *   2.1.0a3
+ *   Updates to setup.py.
+ *   Initial support for MPFR4
+ *     - Add nrandom()
+ *     - grandom() now calls nrandom twice; may return different values versus
+ *       MPFR3
+ *     - Add rootn(); same as root() except different sign when taking even root
+ *       of -0.0
  *
  ************************************************************************
  *
@@ -427,7 +434,7 @@
 
 /* The following global strings are used by gmpy_misc.c. */
 
-char gmpy_version[] = "2.1.0a3dev0";
+char gmpy_version[] = "2.1.0a3";
 
 char gmpy_license[] = "\
 The GMPY2 source code is licensed under LGPL 3 or later. The supported \
@@ -730,6 +737,10 @@ static PyMethodDef Pygmpy_methods [] =
     { "floor", GMPy_Context_Floor, METH_O, GMPy_doc_function_floor },
     { "fma", GMPy_Context_FMA, METH_VARARGS, GMPy_doc_function_fma },
     { "fms", GMPy_Context_FMS, METH_VARARGS, GMPy_doc_function_fms },
+#if MPFR_VERSION_MAJOR > 3
+    { "fmma", GMPy_Context_FMMA, METH_VARARGS, GMPy_doc_function_fmma },
+    { "fmms", GMPy_Context_FMMS, METH_VARARGS, GMPy_doc_function_fmms },
+#endif
     { "fmod", GMPy_Context_Fmod, METH_VARARGS, GMPy_doc_function_fmod },
     { "frac", GMPy_Context_Frac, METH_O, GMPy_doc_function_frac },
     { "free_cache", GMPy_MPFR_Free_Cache, METH_NOARGS, GMPy_doc_mpfr_free_cache },
@@ -770,6 +781,9 @@ static PyMethodDef Pygmpy_methods [] =
     { "mpfr_from_old_binary", GMPy_MPFR_From_Old_Binary, METH_O, doc_mpfr_from_old_binary },
     { "mpfr_random", GMPy_MPFR_random_Function, METH_VARARGS, GMPy_doc_mpfr_random_function },
     { "mpfr_grandom", GMPy_MPFR_grandom_Function, METH_VARARGS, GMPy_doc_mpfr_grandom_function },
+#if MPFR_VERSION_MAJOR > 3
+    { "mpfr_nrandom", GMPy_MPFR_nrandom_Function, METH_VARARGS, GMPy_doc_mpfr_nrandom_function },
+#endif
     { "mul_2exp", GMPy_Context_Mul_2exp, METH_VARARGS, GMPy_doc_function_mul_2exp },
     { "nan", GMPy_MPFR_set_nan, METH_NOARGS, GMPy_doc_mpfr_set_nan },
     { "next_above", GMPy_Context_NextAbove, METH_O, GMPy_doc_function_next_above },
@@ -786,6 +800,7 @@ static PyMethodDef Pygmpy_methods [] =
     { "rint_round", GMPy_Context_RintRound, METH_O, GMPy_doc_function_rint_round },
     { "rint_trunc", GMPy_Context_RintTrunc, METH_O, GMPy_doc_function_rint_trunc },
     { "root", GMPy_Context_Root, METH_VARARGS, GMPy_doc_function_root },
+    { "rootn", GMPy_Context_Rootn, METH_VARARGS, GMPy_doc_function_rootn },
     { "round_away", GMPy_Context_RoundAway, METH_O, GMPy_doc_function_round_away },
     { "round2", GMPy_Context_Round2, METH_VARARGS, GMPy_doc_function_round2 },
     { "sec", GMPy_Context_Sec, METH_O, GMPy_doc_function_sec },
@@ -821,7 +836,7 @@ static PyMethodDef Pygmpy_methods [] =
 };
 
 static char _gmpy_docs[] =
-"gmpy2 2.1.0a2 - General Multiple-precision arithmetic for Python\n"
+"gmpy2 2.1.0a3 - General Multiple-precision arithmetic for Python\n"
 "\n"
 "gmpy2 supports several multiple-precision libraries. Integer and\n"
 "rational arithmetic is provided by either the GMP or MPIR libraries.\n"

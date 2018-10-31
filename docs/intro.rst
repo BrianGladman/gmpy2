@@ -42,6 +42,10 @@ minor updates. Version 2.1 is currently under active development and includes
 several new capabilities. Most gmpy2 2.0 code should run unchanged with
 gmpy2 2.1.
 
+The most significant change in gmpy2 2.1 is support for thread-safe contexts.
+This change required extensive refactoring of almost all internal functions.
+
+
 Changes in gmpy2 2.1.0a1
 ------------------------
 
@@ -73,18 +77,27 @@ Changes in gmpy2 2.1.0a2
 * Removal of unused code/macros.
 * Cleanup of Cython interface.
 
+Changes in gmpy2 2.1.0a3
+------------------------
+
+* More updates to build system.
+* Work-around differences in MPFR 3 and 4 functions root/rootn and grandom.
+* Fix for Cython interface.
+* Fix mpz += 0 bug.
+
 Installation
 ============
 
 Installing gmpy2 on Windows
 ---------------------------
 
-Pre-compiled versions of gmpy2 are available at `https://pypi.python.org/pypi/gmpy2`.
-Please select the installer that corresponds to the version of Python installed
-on your computer. Note that either a 32 or 64-bit version of Python can be
-installed on a 64-bit version of Windows. If you get an error message
-stating that Python could not be found in the registry, you have the wrong
-version of the gmpy2 installer.
+
+Pre-compiled versions of gmpy2 2.0.8 are available at
+`https://pypi.org/project/gmpy2/`.
+
+A pre-compiled version of gmpy2 2.1.0a1 is available at
+`https://pypi.org/project/gmpy2/2.1.0a1/`. Updated Windows versions should be
+available again beginning with version 2.1.0a4.
 
 Installing gmpy2 on Unix/Linux
 ------------------------------
@@ -101,8 +114,8 @@ Short Instructions
 ^^^^^^^^^^^^^^^^^^
 
 gmpy2 requires the development files for GMP, MPFR, and MPC. The actual package
-that provides these files varies between Linux distributions. Install "libmpc-dev"
-(or its equivalent) is usually sufficient.
+that provides these files varies between Linux distributions. Installing
+"libmpc-dev" (or its equivalent) is usually sufficient.
 
 If your system has the development libraries installed, compiling should be as
 simple as:
@@ -122,37 +135,24 @@ provided a newer GMP/MPFR/MPC, you should use the versions provided by your
 distribution.
 
 Note: The following instructions are currently out-of-date and will be revised
-for the next alpha release.
+for the alpha4 release.
 
 If your Linux distribution does not support recent versions of GMP, MPFR and
 MPC, you will need to compile your own versions. To avoid any possible conflict
 with existing libraries on your system, it is recommended to use a directory
-not normally used by your distribution. setup.py will automatically search the
-following directories for the required libraries:
-
-    #. /opt/local
-    #. /opt
-    #. /usr/local
-    #. /usr
-    #. /sw
-
-If you can't use one of these directories, you can use a directory located in
-your home directory. The examples will use /home/case/local. If you use one of
-standard directories (say /opt/local), then you won't need to specify
---prefix=/home/case/local to setup.py but you will need to specify the prefix
-when compiling GMP, MPFR, and MPC.
+not normally used by your distribution.
 
 Create the desired destination directory for GMP, MPFR, and MPC.
 ::
 
-    $ mkdir /home/case/local
+    $ mkdir /home/<<your username>>/local
 
 Download and un-tar the GMP source code. Change to the GMP source directory and
 compile GMP.
 ::
 
-    $ cd /home/case/local/src/gmp-5.1.0
-    $ ./configure --prefix=/home/case/local
+    $ cd /home/<<your username>>/local/src/gmp-6.1.2
+    $ ./configure --prefix=/home/<<your username>>/local
     $ make
     $ make check
     $ make install
@@ -161,8 +161,8 @@ Download and un-tar the MPFR source code. Change to the MPFR source directory
 and compile MPFR.
 ::
 
-    $ cd /home/case/local/src/mpfr-3.1.1
-    $ ./configure --prefix=/home/case/local --with-gmp=/home/case/local
+    $ cd /home/<<your username>>/local/src/mpfr-4.0.1
+    $ ./configure --prefix=/home/<<your username>>/local --with-gmp=/home/<<your username>>/local
     $ make
     $ make check
     $ make install
@@ -171,8 +171,8 @@ Download and un-tar the MPC source code. Change to the MPC source directory
 and compile MPC.
 ::
 
-    $ cd /home/case/local/src/mpc-1.0.1
-    $ ./configure --prefix=/home/case/local --with-gmp=/home/case/local --with-mpfr=/home/case/local
+    $ cd /home/<<your username>>/local/src/mpc-1.1.0
+    $ ./configure --prefix=/home/<<your username>>/local --with-gmp=/home/<<your username>>/local --with-mpfr=/home/<<your username>>/local
     $ make
     $ make check
     $ make install
