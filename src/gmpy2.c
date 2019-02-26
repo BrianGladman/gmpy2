@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018 Case Van Horsen                        *
+ *           2015, 2016, 2017, 2018, 2019 Case Van Horsen                  *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -375,6 +375,15 @@
  *     - Add rootn(); same as root() except different sign when taking even root
  *       of -0.0
  *
+ *    2.1.0a4
+ *    Fix issue 204; missing file for Cython.
+ *    Additional support for MPFR 4
+ *      - Add fmma() and fmms()
+ *
+ *    2.1.a05
+ *    Fix qdiv() not returning mpz() when it should.
+ *    Added root_of_unity()
+ *
  ************************************************************************
  *
  * Discussion on sizes of C integer types.
@@ -434,7 +443,7 @@
 
 /* The following global strings are used by gmpy_misc.c. */
 
-char gmpy_version[] = "2.1.0a3";
+char gmpy_version[] = "2.1.0a5";
 
 char gmpy_license[] = "\
 The GMPY2 source code is licensed under LGPL 3 or later. The supported \
@@ -831,12 +840,15 @@ static PyMethodDef Pygmpy_methods [] =
     { "polar", GMPy_Context_Polar, METH_O, GMPy_doc_function_polar },
     { "phase", GMPy_Context_Phase, METH_O, GMPy_doc_function_phase },
     { "proj", GMPy_Context_Proj, METH_O, GMPy_doc_function_proj },
+#ifdef MPC_110
+    { "root_of_unity", GMPy_Context_Root_Of_Unity, METH_VARARGS, GMPy_doc_function_root_of_unity },
+#endif
     { "rect", GMPy_Context_Rect, METH_VARARGS, GMPy_doc_function_rect },
     { NULL, NULL, 1}
 };
 
 static char _gmpy_docs[] =
-"gmpy2 2.1.0a3 - General Multiple-precision arithmetic for Python\n"
+"gmpy2 2.1.0a5 - General Multiple-precision arithmetic for Python\n"
 "\n"
 "gmpy2 supports several multiple-precision libraries. Integer and\n"
 "rational arithmetic is provided by either the GMP or MPIR libraries.\n"

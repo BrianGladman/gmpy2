@@ -8,7 +8,7 @@
  *           2008, 2009 Alex Martelli                                      *
  *                                                                         *
  * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018 Case Van Horsen                        *
+ *           2015, 2016, 2017, 2018, 2019 Case Van Horsen                  *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -83,6 +83,17 @@ extern "C" {
 
 #include <mpfr.h>
 #include <mpc.h>
+
+/* Check MPFR and MPC versions. */
+
+#if (!defined(MPC_VERSION) || (MPC_VERSION < MPC_VERSION_NUM(1,0,3)))
+#  error "GMPY2 requires MPC 1.0.3 or later."
+#endif
+
+#if (defined(MPC_VERSION) && (MPC_VERSION >= MPC_VERSION_NUM(1,1,0)))
+#  define MPC_110
+#endif
+
 
 #if PY_VERSION_HEX < 0x030200A4
 typedef long Py_hash_t;

@@ -12,7 +12,7 @@ def writeln(s):
 # Some operating systems may use a different library directory under the
 # prefix specified by --shared. It must be manually changed.
 
-lib_path = 'lib'
+lib_path = '/lib'
 
 # Fail gracefully for old versions of Python.
 
@@ -266,7 +266,7 @@ setup(name = "gmpy2",
       classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research'
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
         'Natural Language :: English',
         'Operating System :: MacOS :: MacOS X',
