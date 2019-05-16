@@ -1019,7 +1019,7 @@ GMPy_Context_Radians(PyObject *self, PyObject *other)
 
     mpfr_clear_flags();
 
-    mpfr_mul(result->f, MPFR(self), temp->f, MPFR_RNDN);
+    mpfr_mul(result->f, tempx->f, temp->f, MPFR_RNDN);
 
     Py_DECREF((PyObject*)temp);
     Py_DECREF((PyObject*)tempx);
@@ -1440,9 +1440,10 @@ static PyObject *
 GMPy_Real_Round2(PyObject *x, PyObject *y, CTXT_Object *context)
 {
     MPFR_Object *result, *tempx;
-    long n = 0;
+    long n;
 
     CHECK_CONTEXT(context);
+    n = GET_MPFR_PREC(context);
 
     if (y) {
         n = PyIntOrLong_AsLong(y);

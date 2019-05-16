@@ -380,9 +380,14 @@
  *    Additional support for MPFR 4
  *      - Add fmma() and fmms()
  *
- *    2.1.a05
+ *    2.1.0a5
  *    Fix qdiv() not returning mpz() when it should.
  *    Added root_of_unity()
+ *
+ *    2.1.0b1
+ *    Added cmp() and cmp_abs().
+ *    Improved compatibility with _numbers_ protocol.
+ *    Many bug fixes,
  *
  ************************************************************************
  *
@@ -443,7 +448,7 @@
 
 /* The following global strings are used by gmpy_misc.c. */
 
-char gmpy_version[] = "2.1.0a5";
+char gmpy_version[] = "2.1.0b1";
 
 char gmpy_license[] = "\
 The GMPY2 source code is licensed under LGPL 3 or later. The supported \
@@ -572,6 +577,7 @@ static PyObject *GMPyExc_Erange = NULL;
 #include "gmpy2_predicate.c"
 #include "gmpy2_sign.c"
 #include "gmpy2_richcompare.c"
+#include "gmpy2_cmp.c"
 #include "gmpy2_mpc_misc.c"
 #include "gmpy2_mpfr_misc.c"
 #include "gmpy2_mpq_misc.c"
@@ -605,6 +611,8 @@ static PyMethodDef Pygmpy_methods [] =
     { "bit_set", GMPy_MPZ_bit_set_function, METH_VARARGS, doc_bit_set_function },
     { "bit_test", GMPy_MPZ_bit_test_function, METH_VARARGS, doc_bit_test_function },
     { "bincoef", GMPy_MPZ_Function_Bincoef, METH_VARARGS, GMPy_doc_mpz_function_bincoef },
+    { "cmp", GMPy_MPANY_cmp, METH_VARARGS, GMPy_doc_mpany_cmp },
+    { "cmp_abs", GMPy_MPANY_cmp_abs, METH_VARARGS, GMPy_doc_mpany_cmp_abs },
     { "comb", GMPy_MPZ_Function_Bincoef, METH_VARARGS, GMPy_doc_mpz_function_comb },
     { "c_div", GMPy_MPZ_c_div, METH_VARARGS, doc_c_div },
     { "c_div_2exp", GMPy_MPZ_c_div_2exp, METH_VARARGS, doc_c_div_2exp },
@@ -848,7 +856,7 @@ static PyMethodDef Pygmpy_methods [] =
 };
 
 static char _gmpy_docs[] =
-"gmpy2 2.1.0a5 - General Multiple-precision arithmetic for Python\n"
+"gmpy2 2.1.0b1 - General Multiple-precision arithmetic for Python\n"
 "\n"
 "gmpy2 supports several multiple-precision libraries. Integer and\n"
 "rational arithmetic is provided by either the GMP or MPIR libraries.\n"

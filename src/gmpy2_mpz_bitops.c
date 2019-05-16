@@ -160,7 +160,7 @@ GMPy_MPZ_bit_scan0_function(PyObject *self, PyObject *args)
   err:
     TYPE_ERROR("bit_scan0() requires 'mpz',['int'] arguments");
   err_index:
-    Py_DECREF((PyObject*)tempx);
+    Py_XDECREF((PyObject*)tempx);
     return NULL;
 }
 
@@ -232,9 +232,9 @@ GMPy_MPZ_bit_scan1_function(PyObject *self, PyObject *args)
     }
 
   err:
-    TYPE_ERROR("bit_scan0() requires 'mpz',['int'] arguments");
+    TYPE_ERROR("bit_scan1() requires 'mpz',['int'] arguments");
   err_index:
-    Py_DECREF((PyObject*)tempx);
+    Py_XDECREF((PyObject*)tempx);
     return NULL;
 }
 
@@ -274,7 +274,7 @@ GMPy_MPZ_bit_test_function(PyObject *self, PyObject *args)
   err:
     TYPE_ERROR("bit_test() requires 'mpz','int' arguments");
   err_index:
-    Py_DECREF((PyObject*)tempx);
+    Py_XDECREF((PyObject*)tempx);
     return NULL;
 }
 
@@ -349,8 +349,10 @@ GMPy_MPZ_bit_clear_method(PyObject *self, PyObject *other)
         return NULL;
 
     bit_index = mp_bitcnt_t_From_Integer(other);
-    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred())
+    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred()) {
+        Py_DECREF(result);
         return NULL;
+    }
 
     mpz_set(result->z, MPZ(self));
     mpz_clrbit(result->z, bit_index);
@@ -408,8 +410,10 @@ GMPy_MPZ_bit_set_method(PyObject *self, PyObject *other)
         return NULL;
 
     bit_index = mp_bitcnt_t_From_Integer(other);
-    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred())
+    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred()) {
+        Py_DECREF(result);
         return NULL;
+    }
 
     mpz_set(result->z, MPZ(self));
     mpz_setbit(result->z, bit_index);
@@ -442,6 +446,9 @@ GMPy_MPZ_bit_flip_function(PyObject *self, PyObject *args)
     mpz_set(result->z, tempx->z);
     mpz_combit(result->z, bit_index);
 
+    Py_DECREF((PyObject*)tempx);
+    return (PyObject*)result;
+
   err:
     TYPE_ERROR("bit_flip() requires 'mpz','int' arguments");
   err_index:
@@ -464,8 +471,10 @@ GMPy_MPZ_bit_flip_method(PyObject *self, PyObject *other)
         return NULL;
 
     bit_index = mp_bitcnt_t_From_Integer(other);
-    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred())
+    if (bit_index == (mp_bitcnt_t)(-1) && PyErr_Occurred()) {
+        Py_DECREF(result);
         return NULL;
+    }
 
     mpz_set(result->z, MPZ(self));
     mpz_combit(result->z, bit_index);
