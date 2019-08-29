@@ -1066,11 +1066,11 @@ GMPy_MPQ_From_Number(PyObject *obj, CTXT_Object *context)
 }
 
 static MPQ_Object*
-GMPy_MPQ_From_NumberAndCopy(PyObject *obj, CTXT_Object *context)
+GMPy_MPQ_From_RationalAndCopy(PyObject *obj, CTXT_Object *context)
 {
     MPQ_Object *result = NULL, *temp = NULL;
 
-    result = GMPy_MPQ_From_Number(obj, context);
+    result = GMPy_MPQ_From_Rational(obj, context);
 
     if (result == NULL)
         return result;
@@ -1109,6 +1109,33 @@ GMPy_MPQ_From_Rational(PyObject *obj, CTXT_Object *context)
     if (IS_FRACTION(obj))
         return GMPy_MPQ_From_Fraction(obj, context);
 
+    if (HAS_MPQ_CONVERSION(obj)) {
+        MPQ_Object * res = (MPQ_Object *) PyObject_CallMethod(obj, "__mpq__", NULL);
+
+        if (res != NULL && MPQ_Check(res)) {
+            return res;
+        }
+        else {
+            Py_XDECREF((PyObject*)res);
+            goto error;
+        }
+    }
+
+    if (HAS_MPZ_CONVERSION(obj)) {
+        MPZ_Object * res = (MPZ_Object *) PyObject_CallMethod(obj, "__mpz__", NULL);
+
+        if (res != NULL && MPZ_Check(res)) {
+            MPQ_Object * temp = GMPy_MPQ_From_MPZ(res, context);
+            Py_DECREF(res);
+            return temp;
+        }
+        else {
+            Py_XDECREF((PyObject*)res);
+            goto error;
+        }
+    }
+
+  error:
     TYPE_ERROR("cannot convert object to mpq");
     return NULL;
 }
