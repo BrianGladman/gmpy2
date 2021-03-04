@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -39,16 +37,11 @@ static PyObject * GMPy_Number_Sub(PyObject *x, PyObject *y, CTXT_Object *context
 
 /* Private API */
 
-static PyObject * GMPy_Integer_Sub(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Rational_Sub(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Real_Sub(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Complex_Sub(PyObject *x, PyObject *y, CTXT_Object *context);
-
-static PyObject * GMPy_MPZ_Sub_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPQ_Sub_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPFR_Sub_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPC_Sub_Slot(PyObject *x, PyObject *y);
-
+static PyObject * GMPy_Integer_SubWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Rational_SubWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Real_SubWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Complex_SubWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Number_Sub_Slot(PyObject *x, PyObject *y);
 static PyObject * GMPy_Context_Sub(PyObject *self, PyObject *args);
 
 #ifdef __cplusplus

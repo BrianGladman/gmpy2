@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -53,69 +51,6 @@
  * corresponding Python functions to support the general case.
  *
  */
-
-/* The following functions test the most common cases as quickly as
- * possible and then defer to PyLong_AsLongAndOverflow().
- */
-
-static long
-GMPy_IntOrLongExact_AsLongAndError(PyObject *obj, int *error)
-{
-    register PyLongObject *v;
-    unsigned long x, prev;
-    long res = 0;
-    Py_ssize_t i;
-    int sign;
-
-    *error = 0;
-
-#ifdef PY2
-    if (PyInt_CheckExact(obj)) {
-        return PyInt_AS_LONG(obj);
-    }
-#endif
-
-    v = (PyLongObject *)obj;
-    i = Py_SIZE(v);
-
-    switch (i) {
-    case -1:
-        res = -(sdigit)v->ob_digit[0];
-        break;
-    case 0:
-        break;
-    case 1:
-        res = v->ob_digit[0];
-        break;
-    default:
-        sign = 1;
-        x = 0;
-        if (i < 0) {
-            sign = -1;
-            i = -(i);
-        }
-        while (--i >= 0) {
-            prev = x;
-            x = (x << PyLong_SHIFT) + v->ob_digit[i];
-            if ((x >> PyLong_SHIFT) != prev) {
-                *error = sign;
-                return res;
-            }
-        }
-        /* Haven't lost any bits, but casting to long requires extra care.
-         */
-        if (x <= (unsigned long)LONG_MAX) {
-            res = (long)x * sign;
-        }
-        else if (sign < 0 && x == PY_ABS_LONG_MIN) {
-            res = LONG_MIN;
-        }
-        else {
-            *error = sign;
-        }
-    }
-    return res;
-}
 
 static long
 GMPy_Integer_AsLongAndError(PyObject *obj, int *error)

@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -82,8 +80,6 @@ GMPy_MPFR_From_MPFR(MPFR_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result = NULL;
 
-    assert(MPFR_Check(obj));
-
     /* Optimize the critical case when prec==1 or obj is NaN or Inf. */
 
     if (prec == 1 || !mpfr_number_p(obj->f)) {
@@ -127,8 +123,6 @@ GMPy_MPFR_From_PyIntOrLong(PyObject *obj, mpfr_prec_t prec, CTXT_Object *context
     MPZ_Object *tempx = NULL;
     int error, was_one = 0;
     long temp;
-
-    assert(PyIntOrLong_Check(obj));
 
     CHECK_CONTEXT(context);
 
@@ -180,8 +174,6 @@ GMPy_MPFR_From_PyFloat(PyObject *obj, mpfr_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result;
 
-    assert(PyFloat_Check(obj));
-
     CHECK_CONTEXT(context);
 
     if (prec == 0)
@@ -215,8 +207,6 @@ GMPy_MPFR_From_MPZ(MPZ_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
     MPFR_Object *result;
     int was_one = 0;
     size_t bitlen;
-
-    assert(CHECK_MPZANY(obj));
 
     CHECK_CONTEXT(context);
 
@@ -258,8 +248,6 @@ GMPy_MPFR_From_MPQ(MPQ_Object *obj, mpfr_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result;
 
-    assert(MPQ_Check(obj));
-
     CHECK_CONTEXT(context);
 
     if (prec < 2)
@@ -286,8 +274,6 @@ GMPy_MPFR_From_Fraction(PyObject *obj, mpfr_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result = NULL;
     MPQ_Object *tempq;
-
-    assert(IS_RATIONAL(obj));
 
     CHECK_CONTEXT(context);
 
@@ -415,29 +401,29 @@ GMPy_MPFR_From_PyStr(PyObject *s, int base, mpfr_prec_t prec, CTXT_Object *conte
  */
 
 static MPFR_Object *
-GMPy_MPFR_From_Real(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
+GMPy_MPFR_From_RealWithType(PyObject *obj, int xtype, mp_prec_t prec, CTXT_Object *context)
 {
     CHECK_CONTEXT(context);
 
-    if (MPFR_Check(obj))
+    if (IS_TYPE_MPFR(xtype))
         return GMPy_MPFR_From_MPFR((MPFR_Object*)obj, prec, context);
 
-    if (PyFloat_Check(obj))
+    if (IS_TYPE_PyFloat(xtype))
         return GMPy_MPFR_From_PyFloat(obj, prec, context);
 
-    if (MPQ_Check(obj))
+    if (IS_TYPE_MPQ(xtype))
         return GMPy_MPFR_From_MPQ((MPQ_Object*)obj, prec, context);
 
-    if (MPZ_Check(obj) || XMPZ_Check(obj))
+    if (IS_TYPE_MPZANY(xtype))
         return GMPy_MPFR_From_MPZ((MPZ_Object*)obj, prec, context);
 
-    if (PyIntOrLong_Check(obj))
+    if (IS_TYPE_PyInteger(xtype))
         return GMPy_MPFR_From_PyIntOrLong(obj, prec, context);
 
-    if (IS_FRACTION(obj))
+    if (IS_TYPE_PyFraction(xtype))
         return GMPy_MPFR_From_Fraction(obj, prec, context);
 
-    if (HAS_MPFR_CONVERSION(obj)) {
+    if (IS_TYPE_HAS_MPFR(xtype)) {
         MPFR_Object *res = (MPFR_Object *) PyObject_CallMethod(obj, "__mpfr__", NULL);
 
         if (res != NULL && MPFR_Check(res)) {
@@ -449,7 +435,7 @@ GMPy_MPFR_From_Real(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
         }
     }
 
-    if (HAS_MPQ_CONVERSION(obj)) {
+    if (IS_TYPE_HAS_MPQ(xtype)) {
         MPQ_Object *res = (MPQ_Object *) PyObject_CallMethod(obj, "__mpq__", NULL);
 
         if (res != NULL && MPQ_Check(res)) {
@@ -463,7 +449,7 @@ GMPy_MPFR_From_Real(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
         }
     }
 
-    if (HAS_MPZ_CONVERSION(obj)) {
+    if (IS_TYPE_HAS_MPZ(xtype)) {
         MPZ_Object *res = (MPZ_Object *) PyObject_CallMethod(obj, "__mpz__", NULL);
 
         if (res != NULL && MPZ_Check(res)) {
@@ -482,13 +468,19 @@ GMPy_MPFR_From_Real(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
     return NULL;
 }
 
+static MPFR_Object *
+GMPy_MPFR_From_Real(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
+{
+    return GMPy_MPFR_From_RealWithType(obj, GMPy_ObjectType(obj),
+                                      prec, context);
+}
 
 static MPFR_Object *
-GMPy_MPFR_From_RealAndCopy(PyObject *obj, mp_prec_t prec, CTXT_Object *context)
+GMPy_MPFR_From_RealWithTypeAndCopy(PyObject *obj, int xtype, mp_prec_t prec, CTXT_Object *context)
 {
     MPFR_Object *result = NULL, *temp = NULL;
 
-    result = GMPy_MPFR_From_Real(obj, prec, context);
+    result = GMPy_MPFR_From_RealWithType(obj, xtype, prec, context);
 
     if (result == NULL)
         return result;
@@ -515,8 +507,6 @@ static MPZ_Object *
 GMPy_MPZ_From_MPFR(MPFR_Object *obj, CTXT_Object *context)
 {
     MPZ_Object *result;
-
-    assert(MPFR_Check(obj));
 
     CHECK_CONTEXT(context);
 
@@ -689,14 +679,14 @@ stern_brocot(MPFR_Object* self, MPFR_Object *err, mpfr_prec_t bits, int mayz, CT
         mpfr_floor(a, al);
         mpfr_swap(r1[0], r1[1]);
         mpfr_swap(r1[1], r1[2]);
-        mpfr_fma(r1[2], r1[1], a, r1[0], MPFR_RNDN);
-        //mpfr_mul(r1[2], r1[1], a, MPFR_RNDN);
-        //mpfr_add(r1[2], r1[2], r1[0], MPFR_RNDN);
+        //mpfr_fma(r1[2], r1[1], a, r1[0], MPFR_RNDN);
+        mpfr_mul(r1[2], r1[1], a, MPFR_RNDN);
+        mpfr_add(r1[2], r1[2], r1[0], MPFR_RNDN);
         mpfr_swap(r2[0], r2[1]);
         mpfr_swap(r2[1], r2[2]);
-        mpfr_fma(r2[2], r2[1], a, r2[0], MPFR_RNDN);
-        //mpfr_mul(r2[2], r2[1], a, MPFR_RNDN);
-        //mpfr_add(r2[2], r2[2], r2[0], MPFR_RNDN);
+        //mpfr_fma(r2[2], r2[1], a, r2[0], MPFR_RNDN);
+        mpfr_mul(r2[2], r2[1], a, MPFR_RNDN);
+        mpfr_add(r2[2], r2[2], r2[0], MPFR_RNDN);
         mpfr_div(temp, r2[2], r1[2], MPFR_RNDN);
         mpfr_reldiff(newerr, f, temp, MPFR_RNDN);
         if(mpfr_cmp(curerr, newerr) <= 0) {
@@ -858,7 +848,6 @@ GMPy_PyStr_From_MPFR(MPFR_Object *self, int base, int digits, CTXT_Object *conte
     CHECK_CONTEXT(context);
 
     /* check arguments are valid */
-    assert(MPFR_Check((PyObject*)self));
     if (!((base >= 2) && (base <= 62))) {
         VALUE_ERROR("base must be in the interval [2,62]");
         return NULL;
@@ -908,7 +897,8 @@ GMPy_PyStr_From_MPFR(MPFR_Object *self, int base, int digits, CTXT_Object *conte
 int
 GMPy_MPFR_ConvertArg(PyObject *arg, PyObject **ptr)
 {
-    MPFR_Object* newob = GMPy_MPFR_From_Real(arg, 1, NULL);
+    MPFR_Object* newob = GMPy_MPFR_From_RealWithType(arg, GMPy_ObjectType(arg),
+                                                     1, NULL);
 
     if (newob) {
         *ptr = (PyObject*)newob;

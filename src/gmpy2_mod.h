@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -39,16 +37,11 @@ static PyObject * GMPy_Number_Mod(PyObject *x, PyObject *y, CTXT_Object *context
 
 /* Private API */
 
-static PyObject * GMPy_Integer_Mod(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Rational_Mod(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Real_Mod(PyObject *x, PyObject *y, CTXT_Object *context);
-static PyObject * GMPy_Complex_Mod(PyObject *x, PyObject *y, CTXT_Object *context);
-
-static PyObject * GMPy_MPZ_Mod_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPQ_Mod_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPFR_Mod_Slot(PyObject *x, PyObject *y);
-static PyObject * GMPy_MPC_Mod_Slot(PyObject *x, PyObject *y);
-
+static PyObject * GMPy_Integer_ModWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Rational_ModWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Real_ModWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Complex_ModWithType(PyObject *x, int xtype, PyObject *y, int ytype, CTXT_Object *context);
+static PyObject * GMPy_Number_Mod_Slot(PyObject *x, PyObject *y);
 static PyObject * GMPy_Context_Mod(PyObject *self, PyObject *args);
 
 #ifdef __cplusplus

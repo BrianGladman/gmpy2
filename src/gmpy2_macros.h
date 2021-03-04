@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -241,6 +239,32 @@ GMPy_Context_##NAME(PyObject *self, PyObject *other) \
     } \
     return GMPy_Number_##NAME(other, context); \
 }
+
+#define GMPY_MPFR_MPC_UNIOP_TEMPLATE_EXWT(NAME, FUNC) \
+static PyObject * \
+GMPy_Number_##NAME(PyObject *x, CTXT_Object *context) \
+{ \
+    int xtype = GMPy_ObjectType(x); \
+    if (IS_TYPE_REAL(xtype)) \
+        return GMPy_RealWithType_##NAME(x, xtype, context); \
+    if (IS_TYPE_COMPLEX(xtype)) \
+        return GMPy_ComplexWithType_##NAME(x, xtype, context); \
+    TYPE_ERROR(#FUNC"() argument type not supported"); \
+    return NULL; \
+} \
+static PyObject * \
+GMPy_Context_##NAME(PyObject *self, PyObject *other) \
+{ \
+    CTXT_Object *context = NULL; \
+    if (self && CTXT_Check(self)) { \
+        context = (CTXT_Object*)self; \
+    } \
+    else { \
+        CHECK_CONTEXT(context); \
+    } \
+    return GMPy_Number_##NAME(other, context); \
+}
+
 
 #define GMPY_MPFR_MPC_TRIOP_TEMPLATE(NAME, FUNC) \
 static PyObject * \

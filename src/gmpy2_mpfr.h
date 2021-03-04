@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -70,7 +68,12 @@ __MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
 #define MPFR_FLAGS_INEXACT 8
 #define MPFR_FLAGS_ERANGE 16
 #define MPFR_FLAGS_DIVBY0 32
-#define MPFR_FLAGS_ALL 63
+#define MPFR_FLAGS_ALL (MPFR_FLAGS_UNDERFLOW | \
+                        MPFR_FLAGS_OVERFLOW  | \
+                        MPFR_FLAGS_NAN       | \
+                        MPFR_FLAGS_INEXACT   | \
+                        MPFR_FLAGS_ERANGE    | \
+                        MPFR_FLAGS_DIVBY0)
 
 /* Replace some common functions for direct access to the global vars */
 #define mpfr_get_emin() (__gmpfr_emin + 0)
@@ -92,7 +95,7 @@ __MPFR_DECLSPEC extern MPFR_THREAD_ATTR mpfr_exp_t   __gmpfr_emax;
 
 #define mpfr_check_range(x,t,r) \
  ((((x)->_mpfr_exp) >= __gmpfr_emin && ((x)->_mpfr_exp) <= __gmpfr_emax) \
-  ? ((t) ? (__gmpfr_flags |= MPFR_FLAGS_INEXACT, (t)) : 0)                   \
+  ? ((t) ? (__gmpfr_flags |= MPFR_FLAGS_INEXACT, (t)) : 0)               \
   : mpfr_check_range(x,t,r))
 
 /* End of the really bad code. Hopefully.

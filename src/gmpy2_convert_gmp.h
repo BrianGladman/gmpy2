@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -42,7 +40,7 @@ static MPZ_Object *    GMPy_MPZ_From_PyStr(PyObject *s, int base, CTXT_Object *c
 static MPZ_Object *    GMPy_MPZ_From_PyFloat(PyObject *obj, CTXT_Object *context);
 
 static MPZ_Object *    GMPy_MPZ_From_Integer(PyObject *obj, CTXT_Object *context);
-static MPZ_Object *    GMPy_MPZ_From_IntegerAndCopy(PyObject *obj, CTXT_Object *context);
+static MPZ_Object *    GMPy_MPZ_From_IntegerWithTypeAndCopy(PyObject *obj, int xtype, CTXT_Object *context);
 
 static PyObject *      GMPy_MPZ_Str_Slot(MPZ_Object *self);
 static PyObject *      GMPy_MPZ_Repr_Slot(MPZ_Object *self);
@@ -90,9 +88,10 @@ static MPQ_Object *    GMPy_MPQ_From_MPZ(MPZ_Object *obj, CTXT_Object *context);
 static MPQ_Object *    GMPy_MPQ_From_XMPZ(XMPZ_Object *obj, CTXT_Object *context);
 
 static MPQ_Object *    GMPy_MPQ_From_Rational(PyObject* obj, CTXT_Object *context);
+static MPQ_Object *    GMPy_MPQ_From_NumberWithType(PyObject* obj, int xtype, CTXT_Object *context);
 static MPQ_Object *    GMPy_MPQ_From_Number(PyObject* obj, CTXT_Object *context);
-static MPQ_Object *    GMPy_MPQ_From_RationalAndCopy(PyObject* obj, CTXT_Object *context);
-
+static MPQ_Object *    GMPy_MPQ_From_RationalWithTypeAndCopy(PyObject* obj, int xtype, CTXT_Object *context);
+static MPQ_Object *    GMPy_MPQ_From_RationalWithType(PyObject *obj, int xtype, CTXT_Object *context);
 static PyObject *      GMPy_PyIntOrLong_From_MPQ(MPQ_Object *obj, CTXT_Object *context);
 static PyObject *      GMPy_PyStr_From_MPQ(MPQ_Object *obj, int base, int option, CTXT_Object *context);
 static PyObject *      GMPy_PyFloat_From_MPQ(MPQ_Object *obj, CTXT_Object *context);

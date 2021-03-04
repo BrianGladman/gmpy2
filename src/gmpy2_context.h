@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -48,8 +46,17 @@ static PyTypeObject CTXT_Manager_Type;
 
 #ifdef WITHOUT_THREADS
 #define CURRENT_CONTEXT(obj) obj = module_context;
+#define GMPY_MAYBE_BEGIN_ALLOW_THREADS /* NOTHING */
+#define GMPY_MAYBE_ALLOW_THREADS do {} while(0)
 #else
 #define CURRENT_CONTEXT(obj) obj = GMPy_current_context();
+#define GMPY_MAYBE_BEGIN_ALLOW_THREADS(context) { \
+        PyThreadState *_save; \
+        CHECK_CONTEXT(context); \
+        _save = GET_THREAD_MODE(context) ? PyEval_SaveThread() : NULL;
+#define GMPY_MAYBE_END_ALLOW_THREADS(context) \
+        if (_save) PyEval_RestoreThread(_save); \
+    }
 #endif
 
 #define CHECK_CONTEXT(context) \
@@ -67,6 +74,8 @@ static PyTypeObject CTXT_Manager_Type;
 #define GET_MPC_ROUND(c) (MPC_RND(GET_REAL_ROUND(c), GET_IMAG_ROUND(c)))
 
 #define GET_DIV_MODE(c) (c->ctx.rational_division)
+
+#define GET_THREAD_MODE(c) (c->ctx.allow_release_gil)
 
 
 static PyObject *    GMPy_CTXT_Manager_New(void);

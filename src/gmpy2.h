@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -173,6 +171,7 @@ typedef struct {
     mpfr_rnd_t imag_round;   /* current rounding mode for Im(MPC) */
     int allow_complex;       /* if 1, allow mpfr functions to return an mpc */
     int rational_division;   /* if 1, mpz/mpz returns an mpq result */
+    int allow_release_gil;   /* if 1, allow mpz functions to release the GIL */
 } gmpy_context;
 
 typedef struct {
@@ -324,7 +323,7 @@ typedef struct {
 #define Py2or3String_1Char(obj)     (PyUnicode_READY(obj) ? (Py_UCS4)0 : PyUnicode_READ_CHAR(obj, 0))
 #define PyStrOrUnicode_Check(op)    (PyBytes_Check(op) || PyUnicode_Check(op))
 #define PyIntOrLong_FromLong        PyLong_FromLong
-#define PyIntOrLong_Check(op)       PyLong_Check(op)
+#define PyIntOrLong_Check(op)       (PyLong_Check(op))
 #define PyIntOrLong_CheckExact(op)  PyLong_CheckExact(op)
 #define PyIntOrLong_FromSize_t      PyLong_FromSize_t
 #define PyIntOrLong_FromSsize_t     PyLong_FromSsize_t

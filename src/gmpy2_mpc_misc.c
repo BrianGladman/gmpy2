@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -228,7 +226,7 @@ GMPy_Complex_Polar(PyObject *x, CTXT_Object *context)
         return NULL;
     }
 
-    abs = GMPy_Complex_Abs(tempx, context);
+    abs = GMPy_Complex_AbsWithType(tempx, OBJ_TYPE_MPC, context);
     phase = GMPy_Complex_Phase(tempx, context);
     Py_DECREF(tempx);
     result = PyTuple_New(2);

@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -39,10 +37,10 @@ static PyObject * GMPy_Number_Abs(PyObject *x, CTXT_Object *context);
 
 /* Private API */
 
-static PyObject * GMPy_Integer_Abs(PyObject *x, CTXT_Object *context);
-static PyObject * GMPy_Rational_Abs(PyObject *x, CTXT_Object *context);
-static PyObject * GMPy_Real_Abs(PyObject *x, CTXT_Object *context);
-static PyObject * GMPy_Complex_Abs(PyObject *x, CTXT_Object *context);
+static PyObject * GMPy_Integer_AbsWithType(PyObject *x, int xtype, CTXT_Object *context);
+static PyObject * GMPy_Rational_AbsWithType(PyObject *x, int xtype, CTXT_Object *context);
+static PyObject * GMPy_Real_AbsWithType(PyObject *x, int xtype, CTXT_Object *context);
+static PyObject * GMPy_Complex_AbsWithType(PyObject *x, int xtype, CTXT_Object *context);
 
 static PyObject * GMPy_MPZ_Abs_Slot(MPZ_Object *x);
 static PyObject * GMPy_MPQ_Abs_Slot(MPQ_Object *x);

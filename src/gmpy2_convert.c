@@ -4,11 +4,9 @@
  * Python interface to the GMP or MPIR, MPFR, and MPC multiple precision   *
  * libraries.                                                              *
  *                                                                         *
- * Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,               *
- *           2008, 2009 Alex Martelli                                      *
+ * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008, 2009, 2010, 2011, 2012, 2013, 2014,                     *
- *           2015, 2016, 2017, 2018, 2019, 2020 Case Van Horsen            *
+ * Copyright 2008 - 2021 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -71,6 +69,52 @@ static int GMPy_isComplex(PyObject *obj)
     return IS_COMPLEX(obj) ? 1 : 0;
 }
 #endif
+
+/* GMPy_ObjectType(PyObject *obj) returns an integer that identifies the
+ * object's type. See gmpy2_convert.h for details.
+ * 
+ * Exceptions are never raised.
+ */
+
+static int GMPy_ObjectType(PyObject *obj)
+{
+    /* Tests are sorted by order by (best guess of) most common argument type.
+     * Tests that require attribute lookups are done last.
+     */
+
+    if MPZ_Check(obj) return OBJ_TYPE_MPZ;
+
+    if MPFR_Check(obj) return OBJ_TYPE_MPFR;
+
+    if MPC_Check(obj)  return OBJ_TYPE_MPC;
+    
+    if MPQ_Check(obj)  return OBJ_TYPE_MPQ;
+
+    if XMPZ_Check(obj) return OBJ_TYPE_XMPZ;
+
+    if PyIntOrLong_Check(obj) return OBJ_TYPE_PyInteger;
+
+    if PyFloat_Check(obj) return OBJ_TYPE_PyFloat;
+
+    if PyComplex_Check(obj) return OBJ_TYPE_PyComplex;
+
+    if IS_FRACTION(obj) return OBJ_TYPE_PyFraction;
+
+    /* Now we look for the presence of __mpz__, __mpq__, __mpfr__, and __mpc__.
+     * Since a type may define more than one of the special methods, we perform
+     * the checks in reverse order.
+     */
+
+    if HAS_MPC_CONVERSION(obj) return OBJ_TYPE_HAS_MPC;
+
+    if HAS_MPFR_CONVERSION(obj) return OBJ_TYPE_HAS_MPFR;
+
+    if HAS_MPQ_CONVERSION(obj) return OBJ_TYPE_HAS_MPQ;
+
+    if HAS_MPZ_CONVERSION(obj) return OBJ_TYPE_HAS_MPZ;
+
+    return OBJ_TYPE_UNKNOWN;
+}
 
 /* mpz_set_PyStr converts a Python "string" into a mpz_t structure. It accepts
  * a sequence of bytes (i.e. str in Python 2, bytes in Python 3) or a Unicode
