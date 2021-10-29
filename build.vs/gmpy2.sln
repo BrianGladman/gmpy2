@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python38", "gmpy2.pyt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python39", "gmpy2.python39\gmpy2.python39.vcxproj", "{BFCC49BF-302F-45FA-B51F-619B0F756A07}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmpy2.python310", "gmpy2.python310\gmpy2.python310.vcxproj", "{B606726C-CA96-423E-B74A-C818F5173D1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -51,6 +53,14 @@ Global
 		{BFCC49BF-302F-45FA-B51F-619B0F756A07}.Release|Win32.Build.0 = Release|Win32
 		{BFCC49BF-302F-45FA-B51F-619B0F756A07}.Release|x64.ActiveCfg = Release|x64
 		{BFCC49BF-302F-45FA-B51F-619B0F756A07}.Release|x64.Build.0 = Release|x64
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Debug|Win32.Build.0 = Debug|Win32
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Debug|x64.ActiveCfg = Debug|x64
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Debug|x64.Build.0 = Debug|x64
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Release|Win32.ActiveCfg = Release|Win32
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Release|Win32.Build.0 = Release|Win32
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Release|x64.ActiveCfg = Release|x64
+		{B606726C-CA96-423E-B74A-C818F5173D1D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

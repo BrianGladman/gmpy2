@@ -164,7 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\..\..\Program Files\Python37\include\Python.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\..\Program Files\Python39\include\Python.h" />
     <ClInclude Include="..\..\src\gmpy2.h" />
   </ItemGroup>
   <ItemGroup>
