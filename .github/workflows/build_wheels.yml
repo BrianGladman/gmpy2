@@ -1,11 +1,6 @@
 name: Build Wheels
 
-on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'build-wheels.conf'
+on: [push, pull_request]
 
 jobs:
   build_wheels:
@@ -26,7 +21,6 @@ jobs:
 
       - name: Install cibuildwheel
         run: |
-          python --version
           python -m pip install cibuildwheel
 
       - name: Build wheel
@@ -34,6 +28,7 @@ jobs:
           python --version
           python -m cibuildwheel --output-dir wheelhouse
         env:
+          CIBW_PRERELEASE_PYTHONS: True
           CIBW_BEFORE_BUILD: bash scripts/before_ci_build.sh
           CIBW_SKIP: pp*
 
@@ -41,40 +36,3 @@ jobs:
         with:
           name: wheels
           path: ./wheelhouse
-
-  # windows_wheels:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       python-version: [3.7]
-  #   runs-on: windows-latest
-  #   defaults:
-  #     run:
-  #       shell: cmd /C CALL {0}
-  #   steps:
-  #     - uses: actions/checkout@master
-  #     - uses: goanpeca/setup-miniconda@v1
-  #       with:
-  #         miniconda-version: 4.6.14
-  #         auto-activate-base: false
-  #         channels: "conda-forge"
-  #         python-version: ${{ matrix.python-version }}
-
-  #     - name: Install libraries
-  #       run: conda install mpir "mpfr>=4" mpc conda=4.6.14
-
-  #     - name: Activate
-  #       run: activate
-
-  #     - name: Compile gmpy2
-  #       run: python setup.py install build_ext --mpir --static -I%CONDA_PREFIX%\Library\include -L%CONDA_PREFIX%\Library\lib
-
-  #     - name: Build Windows Wheels
-  #       run: python setup.py bdist_wheel
-
-  #     - uses: actions/upload-artifact@v1
-  #       with:
-  #         name: wheels
-  #         path: ./dist
-
-

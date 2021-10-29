@@ -415,6 +415,18 @@
  *        see context.allow_release_gil.
  *    Refactored handling of inplace operations for mpz and xmpz types;
  *        inplace operations on xmpz will only return an xmpz result.
+ *    Refactored handling of conversion to C integer types. Some
+ *        exception types changes to reflect Python types.
+ *    gcd() and lcm() now support more than two arguments to align with
+ *        the corresponding functions in the math module.
+ *
+ *    2.1.0rc1
+ *    Added support for embedded underscore characters in string
+ *        literals.
+ *    Allow GIL release for mpz/xmpz/mpq types only.
+ *
+ *    2.1.0rc2
+ *    Updates to builds.
  *
  ************************************************************************
  *
@@ -475,7 +487,7 @@
 
 /* The following global strings are used by gmpy_misc.c. */
 
-char gmpy_version[] = "2.1.0b6";
+char gmpy_version[] = "2.1.0rc2";
 
 char gmpy_license[] = "\
 The GMPY2 source code is licensed under LGPL 3 or later. The supported \
@@ -883,7 +895,7 @@ static PyMethodDef Pygmpy_methods [] =
 };
 
 static char _gmpy_docs[] =
-"gmpy2 2.1.0b6 - General Multiple-precision arithmetic for Python\n"
+"gmpy2 2.1.0rc2 - General Multiple-precision arithmetic for Python\n"
 "\n"
 "gmpy2 supports several multiple-precision libraries. Integer and\n"
 "rational arithmetic is provided by the GMP library. Real floating-\n"
@@ -988,10 +1000,6 @@ PyMODINIT_FUNC initgmpy2(void)
         INITERROR;
         /* LCOV_EXCL_STOP */
     }
-
-    /* Configure MPFR to use the maximum possible exponent range. */
-    mpfr_set_emax(mpfr_get_emax_max());
-    mpfr_set_emin(mpfr_get_emin_min());
 
     /* Initialize the types. */
     if (PyType_Ready(&MPZ_Type) < 0) {

@@ -500,9 +500,7 @@ _GMPy_MPFR_Acos(PyObject *x, CTXT_Object *context)
 
     mpfr_clear_flags();
     
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpfr_acos(result->f, MPFR(x), GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPFR_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -517,9 +515,7 @@ _GMPy_MPC_Acos(PyObject *x, CTXT_Object *context)
         return NULL;
     }
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpc_acos(result->c, MPC(x), GET_MPC_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPC_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -590,9 +586,7 @@ _GMPy_MPFR_Asin(PyObject *x, CTXT_Object *context)
 
     mpfr_clear_flags();
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpfr_asin(result->f, MPFR(x), GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPFR_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -606,9 +600,7 @@ _GMPy_MPC_Asin(PyObject *x, CTXT_Object *context)
         return NULL;
     }
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpc_asin(result->c, MPC(x), GET_MPC_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPC_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -679,9 +671,7 @@ _GMPy_MPFR_Atanh(PyObject *x, CTXT_Object *context)
 
     mpfr_clear_flags();
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpfr_atanh(result->f, MPFR(x), GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPFR_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -695,9 +685,7 @@ _GMPy_MPC_Atanh(PyObject *x, CTXT_Object *context)
         return NULL;
     }
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     result->rc = mpc_atanh(result->c, MPC(x), GET_MPC_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     _GMPy_MPC_Cleanup(&result, context);
     return (PyObject*)result;
 }
@@ -781,9 +769,7 @@ _GMPy_MPFR_Sin_Cos(PyObject *x, CTXT_Object *context)
 
     mpfr_clear_flags();
     
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     code = mpfr_sin_cos(s->f, c->f, MPFR(x), GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
 
     s->rc = code & 0x03;
     c->rc = code >> 2;
@@ -836,9 +822,7 @@ _GMPy_MPC_Sin_Cos(PyObject *x, CTXT_Object *context)
         return NULL;
     }
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     code = mpc_sin_cos(s->c, c->c, MPC(x), GET_MPC_ROUND(context), GET_MPC_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
 
     s->rc = MPC_INEX1(code);
     c->rc = MPC_INEX2(code);
@@ -900,9 +884,7 @@ _GMPy_MPFR_Sinh_Cosh(PyObject *x, CTXT_Object *context)
     }
 
     mpfr_clear_flags();
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     code = mpfr_sinh_cosh(s->f, c->f, MPFR(x), GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
 
     s->rc = code & 0x03;
     c->rc = code >> 2;
@@ -1206,7 +1188,7 @@ GMPy_Real_Rootn(PyObject *x, PyObject *y, CTXT_Object *context)
 
     result = GMPy_MPFR_New(0, context);
     tempx = GMPy_MPFR_From_Real(x, 1, context);
-    n = c_ulong_From_Integer(y);
+    n = GMPy_Integer_AsUnsignedLong(y);
 
     if (!result || !tempx || (n == (unsigned long)(-1) && PyErr_Occurred())) {
         Py_XDECREF((PyObject*)tempx);
@@ -1231,7 +1213,7 @@ GMPy_Real_Root(PyObject *x, PyObject *y, CTXT_Object *context)
 
     result = GMPy_MPFR_New(0, context);
     tempx = GMPy_MPFR_From_Real(x, 1, context);
-    n = c_ulong_From_Integer(y);
+    n = GMPy_Integer_AsUnsignedLong(y);
 
     if (!result || !tempx || (n == (unsigned long)(-1) && PyErr_Occurred())) {
         Py_XDECREF((PyObject*)tempx);
@@ -1265,7 +1247,7 @@ GMPy_Real_Rootn(PyObject *x, PyObject *y, CTXT_Object *context)
 
     result = GMPy_MPFR_New(0, context);
     tempx = GMPy_MPFR_From_Real(x, 1, context);
-    n = c_ulong_From_Integer(y);
+    n = GMPy_Integer_AsUnsignedLong(y);
 
     if (!result || !tempx || (n == (unsigned long)(-1) && PyErr_Occurred())) {
         Py_XDECREF((PyObject*)tempx);
@@ -1305,7 +1287,7 @@ GMPy_Real_Root(PyObject *x, PyObject *y, CTXT_Object *context)
 
     result = GMPy_MPFR_New(0, context);
     tempx = GMPy_MPFR_From_Real(x, 1, context);
-    n = c_ulong_From_Integer(y);
+    n = GMPy_Integer_AsUnsignedLong(y);
 
     if (!result || !tempx || (n == (unsigned long)(-1) && PyErr_Occurred())) {
         Py_XDECREF((PyObject*)tempx);
@@ -1373,9 +1355,6 @@ GMPy_Context_Root(PyObject *self, PyObject *args)
     return GMPy_Number_Root(PyTuple_GET_ITEM(args, 0), PyTuple_GET_ITEM(args, 1), context);
 }
 
-
-
-
 PyDoc_STRVAR(GMPy_doc_function_jn,
 "jn(x,n) -> mpfr\n\n"
 "Return the first kind Bessel function of order n of x.");
@@ -1384,7 +1363,7 @@ PyDoc_STRVAR(GMPy_doc_context_jn,
 "context.jn(x,n) -> mpfr\n\n"
 "Return the first kind Bessel function of order n of x.");
 
-GMPY_MPFR_BINOP_REAL_LONG(Jn, jn)
+GMPY_MPFR_BINOP_REAL_LONGWT(Jn, jn)
 
 PyDoc_STRVAR(GMPy_doc_function_yn,
 "yn(x,n) -> mpfr\n\n"
@@ -1394,7 +1373,7 @@ PyDoc_STRVAR(GMPy_doc_context_yn,
 "context.yn(x,n) -> mpfr\n\n"
 "Return the second kind Bessel function of order n of x.");
 
-GMPY_MPFR_BINOP_REAL_LONG(Yn, yn)
+GMPY_MPFR_BINOP_REAL_LONGWT(Yn, yn)
 
 PyDoc_STRVAR(GMPy_doc_function_agm,
 "agm(x, y) -> mpfr\n\n"
@@ -1404,7 +1383,7 @@ PyDoc_STRVAR(GMPy_doc_context_agm,
 "context.agm(x, y) -> mpfr\n\n"
 "Return arithmetic-geometric mean of x and y.");
 
-GMPY_MPFR_BINOP(AGM, agm)
+GMPY_MPFR_BINOPWT(AGM, agm)
 
 PyDoc_STRVAR(GMPy_doc_function_maxnum,
 "maxnum(x, y) -> mpfr\n\n"
@@ -1418,7 +1397,7 @@ PyDoc_STRVAR(GMPy_doc_context_maxnum,
 "converted to 'mpfr'. The result is rounded to match the specified context.\n"
 "If only one of x or y is a number, then that number is returned.");
 
-GMPY_MPFR_BINOP(Maxnum, max)
+GMPY_MPFR_BINOPWT(Maxnum, max)
 
 PyDoc_STRVAR(GMPy_doc_function_minnum,
 "minnum(x, y) -> mpfr\n\n"
@@ -1432,7 +1411,7 @@ PyDoc_STRVAR(GMPy_doc_context_minnum,
 "converted to 'mpfr'. The result is rounded to match the specified context.\n"
 "If only one of x or y is a number, then that number is returned.");
 
-GMPY_MPFR_BINOP(Minnum, min)
+GMPY_MPFR_BINOPWT(Minnum, min)
 
 PyDoc_STRVAR(GMPy_doc_function_remainder,
 "remainder(x, y) -> mpfr\n\n"
@@ -1444,7 +1423,7 @@ PyDoc_STRVAR(GMPy_doc_context_remainder,
 "Return x - n*y where n is the integer quotient of x/y, rounded to\n"
 "the nearest integer and ties rounded to even.");
 
-GMPY_MPFR_BINOP(Remainder, remainder)
+GMPY_MPFR_BINOPWT(Remainder, remainder)
 
 PyDoc_STRVAR(GMPy_doc_function_fmod,
 "fmod(x, y) -> mpfr\n\n"
@@ -1454,7 +1433,7 @@ PyDoc_STRVAR(GMPy_doc_context_fmod,
 "context.fmod(x, y) -> mpfr\n\n"
 "Return x - n*y where n is the integer quotient of x/y, rounded to 0.");
 
-GMPY_MPFR_BINOP(Fmod, fmod)
+GMPY_MPFR_BINOPWT(Fmod, fmod)
 
 PyDoc_STRVAR(GMPy_doc_function_round2,
 "round2(x[, n]) -> mpfr\n\n"
@@ -1663,9 +1642,7 @@ GMPy_RealWithType_Modf(PyObject *x, int xtype, CTXT_Object *context)
 
     mpfr_clear_flags();
     
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     code = mpfr_modf(s->f, c->f, tempx->f, GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     Py_DECREF((PyObject*)tempx);
 
     s->rc = code & 0x03;
@@ -1719,9 +1696,7 @@ GMPy_RealWithType_Lgamma(PyObject *x, int xtype, CTXT_Object *context)
 
     mpfr_clear_flags();
 
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     value->rc = mpfr_lgamma(value->f, &signp, tempx->f, GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     Py_DECREF((PyObject*)tempx);
 
     _GMPy_MPFR_Cleanup(&value, context);
@@ -1809,9 +1784,7 @@ GMPy_RealWithType_Frexp(PyObject *x, int xtype, CTXT_Object *context)
     }
 
     mpfr_clear_flags();
-    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
     value->rc = mpfr_frexp(&exp, value->f, tempx->f, GET_MPFR_ROUND(context));
-    GMPY_MAYBE_END_ALLOW_THREADS(context);
     Py_DECREF((PyObject*)tempx);
     _GMPy_MPFR_Cleanup(&value, context);
 
@@ -1989,8 +1962,7 @@ static PyObject *
 GMPy_Context_Factorial(PyObject *self, PyObject *other)
 {
     MPFR_Object *result;
-    long n;
-    int error;
+    unsigned long n;
     CTXT_Object *context = NULL;
 
     if (self && CTXT_Check(self)) {
@@ -2000,24 +1972,8 @@ GMPy_Context_Factorial(PyObject *self, PyObject *other)
         CHECK_CONTEXT(context);
     }
 
-    if (!(IS_INTEGER(other))) {
-        TYPE_ERROR("factorial() requires non-negative integer argument");
-        return NULL;
-    }
-
-    n = GMPy_Integer_AsLongAndError(other, &error);
-    if ((error == -1) || (n < 0)) {
-        VALUE_ERROR("factorial() of negative number");
-        return NULL;
-    }
-
-    if (error == 1) {
-        VALUE_ERROR("factorial() argument too large");
-        return NULL;
-    }
-
-    if (error == 2) {
-        TYPE_ERROR("factorial() requires non-negative integer argument");
+    n = GMPy_Integer_AsUnsignedLong(other);
+    if ((n == (unsigned long)-1) && PyErr_Occurred()) {
         return NULL;
     }
 

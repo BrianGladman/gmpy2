@@ -121,7 +121,7 @@ GMPy_MPFR_From_PyIntOrLong(PyObject *obj, mpfr_prec_t prec, CTXT_Object *context
 {
     MPFR_Object *result = NULL;
     MPZ_Object *tempx = NULL;
-    int error, was_one = 0;
+    int was_one = 0;
     long temp;
 
     CHECK_CONTEXT(context);
@@ -136,9 +136,10 @@ GMPy_MPFR_From_PyIntOrLong(PyObject *obj, mpfr_prec_t prec, CTXT_Object *context
         was_one = 1;
     }
 
-    temp = GMPy_Integer_AsLongAndError(obj, &error);
+    temp = GMPy_Integer_AsLongWithType(obj, GMPy_ObjectType(obj));
 
-    if (error) {
+    if ((temp == -1) && PyErr_Occurred()) {
+        PyErr_Clear();
         if (!(tempx = GMPy_MPZ_From_PyIntOrLong(obj, context))) {
             return NULL;
         }
@@ -292,30 +293,17 @@ GMPy_MPFR_From_PyStr(PyObject *s, int base, mpfr_prec_t prec, CTXT_Object *conte
     MPQ_Object *tempq;
     char *cp, *endptr;
     Py_ssize_t len;
-    PyObject *ascii_str = NULL;
+    PyObject *ascii_str = ascii_str = GMPy_RemoveUnderscoreASCII(s);
+
+    if (!ascii_str) return NULL;
 
     CHECK_CONTEXT(context);
 
     if (prec < 2)
         prec = GET_MPFR_PREC(context);
 
-    if (PyBytes_Check(s)) {
-        len = PyBytes_Size(s);
-        cp = PyBytes_AsString(s);
-    }
-    else if (PyUnicode_Check(s)) {
-        ascii_str = PyUnicode_AsASCIIString(s);
-        if (!ascii_str) {
-            VALUE_ERROR("string contains non-ASCII characters");
-            return NULL;
-        }
-        len = PyBytes_Size(ascii_str);
-        cp = PyBytes_AsString(ascii_str);
-    }
-    else {
-        TYPE_ERROR("object is not string or Unicode");
-        return NULL;
-    }
+    len = PyBytes_Size(ascii_str);
+    cp = PyBytes_AsString(ascii_str);
 
     /* Check for leading base indicators. */
     if (base == 0) {
