@@ -119,7 +119,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;SHARED;_WIN64;_DEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(mp_dir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(MpirDir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

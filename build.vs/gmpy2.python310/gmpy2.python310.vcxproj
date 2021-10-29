@@ -23,7 +23,7 @@
     <RootNamespace>gmpy2.python37</RootNamespace>
     <TargetPlatformVersion>8.1</TargetPlatformVersion>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectGuid>{BFCC49BF-302F-45FA-B51F-619B0F756A07}</ProjectGuid>
+    <ProjectGuid>{B606726C-CA96-423E-B74A-C818F5173D1D}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -154,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;SHARED;_WIN64;NDEBUG;_WINDOWS;_USRDLL;GMPY2_37_EXPORTS;WITHMPFR;WITHMPC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(mp_dir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\$(python_version)\include;..\..\..\$(MpirDir);..\..\..\mpfr\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -164,7 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\..\..\Program Files\Python39\include\Python.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\..\Program Files\Python310\include\Python.h" />
     <ClInclude Include="..\..\src\gmpy2.h" />
   </ItemGroup>
   <ItemGroup>
