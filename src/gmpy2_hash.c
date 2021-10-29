@@ -24,6 +24,10 @@
  * License along with GMPY2; if not, see <http://www.gnu.org/licenses/>    *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#if !defined(_PyHASH_NAN)
+#define _PyHASH_NAN 0
+#endif
+
 static Py_hash_t
 GMPy_MPZ_Hash_Slot(MPZ_Object *self)
 {
