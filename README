@@ -11,3 +11,6 @@ gmpy2 is available at https://pypi.python.org/pypi/gmpy2/
 
 Documentation is available at https://gmpy2.readthedocs.io/en/latest/
 
+The main source repo is at  https://github.com/aleaxit/gmpy, whereas this repo
+is mainly to maintain VS bindings.
+
