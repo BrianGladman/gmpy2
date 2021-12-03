@@ -1,11 +1,10 @@
-ver_gmp=6.2.1
+ver_gmp=6.2.1 # we get instead one from the system, it's version 5.something
+              # - as the one built from source apparenly clashed, then the gmp
+	      # header cannot be found while building the wheel.
 ver_mpfr=4.1.0
 ver_mpc=1.2.1
 if [ ! -f finish_before_ci_build ]; then
   if [[ "$OSTYPE" == "linux-gnu" ]]; then
-#    curl -O https://gmplib.org/download/gmp/gmp-$ver_gmp.tar.xz
-#    tar -xf gmp-$ver_gmp.tar.lz
-#    cd gmp-$ver_gmp && ./configure && make --enable-fat -j4 install && cd ../
     yum -y install gmp-devel
 
     curl -O https://www.mpfr.org/mpfr-current/mpfr-$ver_mpfr.tar.gz
