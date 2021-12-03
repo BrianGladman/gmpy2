@@ -1,9 +1,9 @@
-ver_gmp=6.2.0
+ver_gmp=6.2.1
 ver_mpfr=4.1.0
 ver_mpc=1.2.1
 if [ ! -f finish_before_ci_build ]; then
   if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    curl -O https://gmplib.org/download/gmp/gmp-$ver_gmp.tar.lz
+    curl -O https://gmplib.org/download/gmp/gmp-$ver_gmp.tar.xz
     tar -xf gmp-$ver_gmp.tar.lz
     cd gmp-$ver_gmp && ./configure && make --enable-fat -j4 install && cd ../
 
