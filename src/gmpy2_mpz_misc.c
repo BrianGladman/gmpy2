@@ -6,7 +6,7 @@
  *                                                                         *
  * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008 - 2021 Case Van Horsen                                   *
+ * Copyright 2008 - 2022 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -1374,6 +1374,11 @@ GMPy_MPZ_Function_IsPrime(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    if (mpz_sgn(tempx->z) == -1) {
+        Py_DECREF((PyObject*)tempx);
+        Py_RETURN_FALSE;        
+    }
+
     i = mpz_probab_prime_p(tempx->z, (int)reps);
     Py_DECREF((PyObject*)tempx);
 
@@ -1412,6 +1417,10 @@ GMPy_MPZ_Method_IsPrime(PyObject *self, PyObject *args)
         if (reps > 1000) {
             reps = 1000;
         }
+    }
+
+    if (mpz_sgn(MPZ(self)) == -1) {
+        Py_RETURN_FALSE;        
     }
 
     i = mpz_probab_prime_p(MPZ(self), (int)reps);

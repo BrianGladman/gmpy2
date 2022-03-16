@@ -69,7 +69,7 @@ extensions = [
     Extension('gmpy2.gmpy2',
               sources=sources,
               include_dirs=['./src'],
-              libraries=['mpc','mpfr','gmp'],
+              libraries=['mpc','mpfr','gmp'] + ([] if ON_WINDOWS else ['m']),
               extra_compile_args=_comp_args,
               )
 ]
@@ -78,20 +78,21 @@ cmdclass = {'build_ext': Gmpy2Build}
 
 setup(
     name="gmpy2",
-    version="2.1.0rc2",
+    version="2.1.3",
     author="Case Van Horsen",
     author_email="casevh@gmail.com",
     cmdclass=cmdclass,
     license="LGPL-3.0+",
     url="https://github.com/aleaxit/gmpy",
     description="gmpy2 interface to GMP/MPIR, MPFR, "
-    "and MPC for Python 2.6+ and 3.4+",
+    "and MPC for Python 2.7 and 3.5+",
     long_description=read('README'),
     zip_safe=False,
     include_package_data=True,
     package_data={'gmpy2': [
         '*.pxd',
         'gmpy2.h',
+        '*.dll',
     ]},
     packages=find_packages(),
     classifiers=[
@@ -117,6 +118,6 @@ setup(
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    keywords="gmp mpir mpfr mpc multiple-precision arbitrary-precision precision bignum",
+    keywords="gmp mpfr mpc multiple-precision arbitrary-precision precision bignum",
     ext_modules=extensions,
 )

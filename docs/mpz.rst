@@ -131,6 +131,10 @@ mpz Functions
 **bit_clear(...)**
     bit_clear(x, n) returns a copy of *x* with bit *n* set to 0.
 
+**bit_count(...)**
+    bit_count(x) returns a the number of 1 bits in the binary 
+    representation of *x*. Differs from popcount() for x <0.
+
 **bit_flip(...)**
     bit_flip(x, n) returns a copy of *x* with bit *n* inverted.
 
@@ -374,6 +378,11 @@ mpz Functions
     powmod(x, y, m) returns (*x* ** *y*) mod *m*. The exponent *y* can be
     negative, and the correct result will be returned if the inverse of *x*
     mod *m* exists. Otherwise, a ValueError is raised.
+
+**powmod_sec(...)**
+    powmod_sec(x, y, m) returns (*x* ** *y*) mod *m*. The calculation uses a
+    constant time algorithm to reduce the risk of side channel attacks. y must
+    be an integer >0. m must be an odd integer.
 
 **primorial(...)**
     primorial(n) returns the exact primorial of *n*, i.e. the product of all

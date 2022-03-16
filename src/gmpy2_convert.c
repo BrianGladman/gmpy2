@@ -6,7 +6,7 @@
  *                                                                         *
  * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008 - 2021 Case Van Horsen                                   *
+ * Copyright 2008 - 2022 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -76,7 +76,7 @@ static int GMPy_isComplex(PyObject *obj)
  * Exceptions are never raised.
  */
 
-static int GMPy_ObjectType(PyObject *obj)
+static inline int GMPy_ObjectType(PyObject *obj)
 {
     /* Tests are sorted by order by (best guess of) most common argument type.
      * Tests that require attribute lookups are done last.

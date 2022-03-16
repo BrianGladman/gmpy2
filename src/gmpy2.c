@@ -6,7 +6,7 @@
  *                                                                         *
  * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008 - 2021 Case Van Horsen                                   *
+ * Copyright 2008 - 2022 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -428,6 +428,26 @@
  *    2.1.0rc2
  *    Updates to builds.
  *
+ *    2.1.0
+ *    Bug fix for <<small mpfr>> ** <<small Python integer>>.
+ *    Compile with Python 3.11.
+ *
+ *    2.1.1
+ *    Code cleanup.
+ *    Properly return NOTIMPLEMENTED for unsupported arguments in **.
+ *        Issue 319.
+ *
+ *    2.1.2
+ *    Code cleanup.
+ *    Support Apple Silicon binary wheels.
+ *    is_prime(-2) now returns False. Issue 312.
+ *
+ *    2.1.3
+ *    Fix mpz(-3).is_prime()
+ *    Add powmod_sec()
+ *    Fix mpfr('inf') and mpfr('nan') if subnormalization is enabled
+ *    powmod() and powmod_sec() release the GIL
+ *
  ************************************************************************
  *
  * Discussion on sizes of C integer types.
@@ -475,7 +495,12 @@
  * we do have a dependence on Python's internals, specifically:
  * how Python "long int"s are internally represented.
  */
-#include "longintrepr.h"
+
+#if PY_VERSION_HEX < 0x030B0000
+# include "longintrepr.h"
+#else
+# include "cpython/longintrepr.h"
+#endif
 
 #define GMPY2_MODULE
 #include "gmpy2.h"
@@ -487,11 +512,11 @@
 
 /* The following global strings are used by gmpy_misc.c. */
 
-char gmpy_version[] = "2.1.0rc2";
+char gmpy_version[] = "2.1.3";
 
 char gmpy_license[] = "\
 The GMPY2 source code is licensed under LGPL 3 or later. The supported \
-versions of the GMP/MPIR, MPFR, and MPC libraries are also licensed under \
+versions of the GMP, MPFR, and MPC libraries are also licensed under \
 LGPL 3 or later.";
 
 /* The following global structures are used by gmpy_cache.c.
@@ -642,6 +667,7 @@ static PyMethodDef Pygmpy_methods [] =
     { "_printf", GMPy_printf, METH_VARARGS, GMPy_doc_function_printf },
     { "add", GMPy_Context_Add, METH_VARARGS, GMPy_doc_function_add },
     { "bit_clear", GMPy_MPZ_bit_clear_function, METH_VARARGS, doc_bit_clear_function },
+    { "bit_count", GMPy_MPZ_bit_count, METH_O, doc_bit_count },
     { "bit_flip", GMPy_MPZ_bit_flip_function, METH_VARARGS, doc_bit_flip_function },
     { "bit_length", GMPy_MPZ_bit_length_function, METH_O, doc_bit_length_function },
     { "bit_mask", GMPy_MPZ_bit_mask, METH_O, doc_bit_mask },
@@ -732,6 +758,7 @@ static PyMethodDef Pygmpy_methods [] =
     { "pack", GMPy_MPZ_pack, METH_VARARGS, doc_pack },
     { "popcount", GMPy_MPZ_popcount, METH_O, doc_popcount },
     { "powmod", GMPy_Integer_PowMod, METH_VARARGS, GMPy_doc_integer_powmod },
+    { "powmod_sec", GMPy_Integer_PowMod_Sec, METH_VARARGS, GMPy_doc_integer_powmod_sec },
     { "primorial", GMPy_MPZ_Function_Primorial, METH_O, GMPy_doc_mpz_function_primorial },
     { "qdiv", GMPy_MPQ_Function_Qdiv, METH_VARARGS, GMPy_doc_function_qdiv },
     { "remove", GMPy_MPZ_Function_Remove, METH_VARARGS, GMPy_doc_mpz_function_remove },
@@ -895,7 +922,7 @@ static PyMethodDef Pygmpy_methods [] =
 };
 
 static char _gmpy_docs[] =
-"gmpy2 2.1.0rc2 - General Multiple-precision arithmetic for Python\n"
+"gmpy2 2.1.3 - General Multiple-precision arithmetic for Python\n"
 "\n"
 "gmpy2 supports several multiple-precision libraries. Integer and\n"
 "rational arithmetic is provided by the GMP library. Real floating-\n"

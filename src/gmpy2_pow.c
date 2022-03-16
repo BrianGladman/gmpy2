@@ -6,7 +6,7 @@
  *                                                                         *
  * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008 - 2021 Case Van Horsen                                   *
+ * Copyright 2008 - 2022 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -166,6 +166,7 @@ GMPy_Integer_PowWithType(PyObject *b, int btype, PyObject *e, int etype,
             }
         }
         else {
+            GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
             mpz_powm(result->z, tempb->z, tempe->z, mm);
             mpz_clear(mm);
 
@@ -176,7 +177,7 @@ GMPy_Integer_PowWithType(PyObject *b, int btype, PyObject *e, int etype,
             if ((sign < 0) && (mpz_sgn(result->z) > 0)) {
                 mpz_add(result->z, result->z, tempm->z);
             }
-
+            GMPY_MAYBE_END_ALLOW_THREADS(context);
         }
     }
 
@@ -299,12 +300,18 @@ GMPy_Real_PowWithType(PyObject *base, int btype, PyObject *exp, int etype,
         long temp;
 
         if (mpfr_fits_ulong_p(tempb->f, MPFR_RNDF)) {
+            /* Need to check the inexact flag to verify that tempb is an integer. */
             intb = mpfr_get_ui(tempb->f, MPFR_RNDF);
-            temp = PyLong_AsLongAndOverflow(exp, &error);
-            if (!error) {
-                if (temp >= 0) {
-                    result->rc = mpfr_ui_pow_ui(result->f, intb, temp, GET_MPFR_ROUND(context));
-                    goto done;
+            if (mpfr_inexflag_p()) {
+                mpfr_clear_inexflag();
+            }
+            else {
+                temp = PyLong_AsLongAndOverflow(exp, &error);
+                if (!error) {
+                    if (temp >= 0) {
+                        result->rc = mpfr_ui_pow_ui(result->f, intb, temp, GET_MPFR_ROUND(context));
+                        goto done;
+                    }
                 }
             }
         }
@@ -459,6 +466,98 @@ GMPy_Integer_PowMod(PyObject *self, PyObject *args)
     return NULL;
 }
 
+
+PyDoc_STRVAR(GMPy_doc_integer_powmod_sec,
+"powmod_sec(x, y, m) -> mpz\n\n"
+"Return (x**y) mod m. Calculates x ** y (mod m) but using a constant\n"
+"time algorithm to reduce the risk of side channel attacks. y must be\n"
+"an integer >0. m must be an odd integer.");
+
+static PyObject *
+GMPy_Integer_PowMod_Sec(PyObject *self, PyObject *args)
+{
+    PyObject *x, *y, *m;
+    int xtype, ytype, mtype;
+    MPZ_Object *tempx = NULL, *tempy = NULL, *tempm = NULL, *result = NULL;
+    CTXT_Object *context = NULL;
+
+    CHECK_CONTEXT(context);
+
+    if (PyTuple_GET_SIZE(args) != 3) {
+        TYPE_ERROR("powmod_sec() requires 3 arguments.");
+        goto err;
+    }
+
+    if (!(result = GMPy_MPZ_New(NULL))) {
+        goto err;
+    }
+
+    x = PyTuple_GET_ITEM(args, 0);
+    y = PyTuple_GET_ITEM(args, 1);
+    m = PyTuple_GET_ITEM(args, 2);
+
+    xtype = GMPy_ObjectType(x);
+    ytype = GMPy_ObjectType(y);
+    mtype = GMPy_ObjectType(m);
+    
+    /* Validate base. */
+
+    if (!IS_TYPE_INTEGER(xtype)) {
+        TYPE_ERROR("powmod_sec() base must be an integer.");
+        goto err;
+    }
+
+    if (!(tempx = GMPy_MPZ_From_IntegerWithType(x, xtype, NULL))) {
+        goto err;
+    }
+
+    /* Validate exponent. It must be > 0. */
+
+    if (!IS_TYPE_INTEGER(ytype)) {
+        TYPE_ERROR("powmod_sec() exponent must be an integer.");
+        goto err;
+    }
+
+    if (!(tempy = GMPy_MPZ_From_IntegerWithType(y, ytype, NULL))) {
+        goto err;
+    }
+
+    if (!(mpz_sgn(tempy->z) == 1)) {
+        VALUE_ERROR("powmod_sec() exponent must be > 0.");
+        goto err;
+    }
+    /* Validate modulus. It must be odd.*/
+
+    if (!IS_TYPE_INTEGER(mtype)) {
+        TYPE_ERROR("powmod_sec() modulus must be an integer.");
+        goto err;
+    }
+
+    if (!(tempm = GMPy_MPZ_From_IntegerWithType(m, mtype, NULL))) {
+        goto err;
+    }
+
+    if (mpz_even_p(tempm->z)) {
+        VALUE_ERROR("powmod_sec() modulus must be odd.");
+        goto err;
+    }
+
+    GMPY_MAYBE_BEGIN_ALLOW_THREADS(context);
+    mpz_powm_sec(result->z, tempx->z, tempy->z, tempm->z);
+    GMPY_MAYBE_END_ALLOW_THREADS(context);
+    
+    Py_DECREF(tempx);
+    Py_DECREF(tempy);
+    Py_DECREF(tempm);
+    return (PyObject*)result;
+
+  err:
+    Py_XDECREF(tempx);
+    Py_XDECREF(tempy);
+    Py_XDECREF(tempm);
+    return NULL;
+}
+
 static PyObject *
 GMPy_Number_Pow(PyObject *x, PyObject *y, PyObject *z, CTXT_Object *context)
 {
@@ -524,7 +623,6 @@ GMPy_Number_Pow_Slot(PyObject *base, PyObject *exp, PyObject *mod)
     if (IS_TYPE_COMPLEX(btype) && IS_TYPE_COMPLEX(etype))
         return GMPy_Complex_PowWithType(base, btype, exp, etype, mod, NULL);
 
-    TYPE_ERROR("unsupported operand type(s) for ** or pow()");
-    return NULL;
+    Py_RETURN_NOTIMPLEMENTED;
 }
 

@@ -6,7 +6,7 @@
  *                                                                         *
  * Copyright 2000 - 2009 Alex Martelli                                     *
  *                                                                         *
- * Copyright 2008 - 2021 Case Van Horsen                                   *
+ * Copyright 2008 - 2022 Case Van Horsen                                   *
  *                                                                         *
  * This file is part of GMPY2.                                             *
  *                                                                         *
@@ -85,7 +85,7 @@ GMPy_Integer_AsUnsignedLongWithType(PyObject *x, int xtype)
 
     if (IS_TYPE_MPZANY(xtype)) {
         if (mpz_fits_ulong_p(MPZ(x))) {
-            return (unsigned long) mpz_get_si(MPZ(x));
+            return (unsigned long) mpz_get_ui(MPZ(x));
         }
         else {
             OVERFLOW_ERROR("value could not be converted to C long");
@@ -190,7 +190,7 @@ GMPy_Integer_AsLongLong(PyObject *x)
     return GMPy_Integer_AsLongLongWithType(x, GMPy_ObjectType(x));
 }
 
-static unsigned PY_LONG_LONG
+/* static unsigned PY_LONG_LONG
 GMPy_Integer_AsUnsignedLongLongWithType(PyObject *x, int xtype)
 {
     if IS_TYPE_PyInteger(xtype) {
@@ -242,5 +242,7 @@ GMPy_Integer_AsUnsignedLongLong(PyObject *x)
 {
     return GMPy_Integer_AsUnsignedLongLongWithType(x, GMPy_ObjectType(x));
 }
+
+*/
 
 #endif
