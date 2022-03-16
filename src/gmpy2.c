@@ -758,7 +758,9 @@ static PyMethodDef Pygmpy_methods [] =
     { "pack", GMPy_MPZ_pack, METH_VARARGS, doc_pack },
     { "popcount", GMPy_MPZ_popcount, METH_O, doc_popcount },
     { "powmod", GMPy_Integer_PowMod, METH_VARARGS, GMPy_doc_integer_powmod },
+#ifndef MPIR
     { "powmod_sec", GMPy_Integer_PowMod_Sec, METH_VARARGS, GMPy_doc_integer_powmod_sec },
+#endif
     { "primorial", GMPy_MPZ_Function_Primorial, METH_O, GMPy_doc_mpz_function_primorial },
     { "qdiv", GMPy_MPQ_Function_Qdiv, METH_VARARGS, GMPy_doc_function_qdiv },
     { "remove", GMPy_MPZ_Function_Remove, METH_VARARGS, GMPy_doc_mpz_function_remove },

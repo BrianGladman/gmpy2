@@ -466,6 +466,7 @@ GMPy_Integer_PowMod(PyObject *self, PyObject *args)
     return NULL;
 }
 
+#ifndef MPIR
 
 PyDoc_STRVAR(GMPy_doc_integer_powmod_sec,
 "powmod_sec(x, y, m) -> mpz\n\n"
@@ -557,6 +558,7 @@ GMPy_Integer_PowMod_Sec(PyObject *self, PyObject *args)
     Py_XDECREF(tempm);
     return NULL;
 }
+#endif
 
 static PyObject *
 GMPy_Number_Pow(PyObject *x, PyObject *y, PyObject *z, CTXT_Object *context)
