@@ -5,3 +5,4 @@ docs/_build
 gmpy2.egg-info/
 MANIFEST
 .vscode/
+/build.vs/gmpy2.python39/gmpy2.python39.vcxproj.user
