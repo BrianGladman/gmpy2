@@ -443,10 +443,20 @@
  *    is_prime(-2) now returns False. Issue 312.
  *
  *    2.1.3
+<<<<<<< HEAD
  *    Fix mpz(-3).is_prime()
  *    Add powmod_sec()
  *    Fix mpfr('inf') and mpfr('nan') if subnormalization is enabled
  *    powmod() and powmod_sec() release the GIL
+=======
+ *    Fix mpz(-3).is_prime().
+ *    Add powmod_sec().
+ *    Fix mpfr('inf') and mpfr('nan') if subnormalization is enabled.
+ *    powmod() and powmod_sec() release the GIL.
+ *    Fix error messages for iroot(x,n) for large n.
+ *    Add powmod_list (experimental).
+ *    Fix gmpy2.mpq(mpq, int).
+>>>>>>> f0bebebfcae72aec79489a1482d0525057c13b1c
  *
  ************************************************************************
  *
